@@ -6,6 +6,7 @@ tags:
   - Markdown
 heroImage: { src: './thumbnail.jpg', color: '#B4C6DA' }
 language: 'English'
+draft: true
 ---
 
 ## Basic Syntax
@@ -222,7 +223,7 @@ Use <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Del</kbd> to reboot the computer
 
 Preview:
 
-Use <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Del</kbd> to reboot the computer
+Use `<kbd>`Ctrl`</kbd>` + `<kbd>`Alt`</kbd>` + `<kbd>`Del`</kbd>` to reboot the computer
 
 #### Bold Italics
 
@@ -232,7 +233,7 @@ Use <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Del</kbd> to reboot the computer
 
 Preview:
 
-<b> Markdown also applies here, such as _bold_ </b>
+`<b>` Markdown also applies here, such as _bold_ `</b>`
 
 ### Other HTML Writing
 
@@ -276,8 +277,6 @@ Use [^footnote] to add a footnote at the point of reference.
 
 Then, at the end of the document, add the content of the footnote (it will be rendered at the end of the article by default).
 
-[^footnote]: Here is the content of the footnote
-
 ### To-Do Lists
 
 ```markdown
@@ -311,3 +310,5 @@ Preview:
 ## Embedding Astro Components
 
 See [User Components](/docs/integrations/components) and [Advanced Components](/docs/integrations/advanced) for details.
+
+[^footnote]: Here is the content of the footnote

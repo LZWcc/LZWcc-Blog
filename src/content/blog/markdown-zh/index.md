@@ -6,6 +6,7 @@ tags:
   - Markdown
 heroImage: { src: './thumbnail.jpg', color: '#B4C6DA' }
 language: '中文'
+draft: true
 ---
 
 ## 基本语法
@@ -204,7 +205,7 @@ markdown 分段落是需要空一行的。
 
 ### 分隔符
 
-如果你有写分割线的习惯，可以新起一行输入三个减号`---` 或者星号 `***`。当前后都有段落时，请空出一行：
+如果你有写分割线的习惯，可以新起一行输入三个减号 `---` 或者星号 `***`。当前后都有段落时，请空出一行：
 
 ```markdown
 ---
@@ -228,7 +229,7 @@ markdown 分段落是需要空一行的。
 
 预览：
 
-使用 <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Del</kbd> 重启电脑
+使用 `<kbd>`Ctrl`</kbd>` + `<kbd>`Alt`</kbd>` + `<kbd>`Del`</kbd>` 重启电脑
 
 #### 粗斜体
 
@@ -238,7 +239,7 @@ markdown 分段落是需要空一行的。
 
 预览：
 
-<b> Markdown 在此处同样适用，如 _加粗_ </b>
+`<b>` Markdown 在此处同样适用，如 _加粗_ `</b>`
 
 ### 其他 HTML 写法
 
@@ -282,8 +283,6 @@ markdown 分段落是需要空一行的。
 
 然后在文档的结尾，添加注释的内容（会默认于文章结尾渲染之）。
 
-[^注释]: 这里是注释的内容
-
 ### To-Do 列表
 
 ```markdown
@@ -317,3 +316,5 @@ markdown 分段落是需要空一行的。
 ## 内嵌 Astro 组件
 
 See [User Components](/docs/integrations/components) and [Advanced Components](/docs/integrations/advanced) for details.
+
+[^注释]: 这里是注释的内容
