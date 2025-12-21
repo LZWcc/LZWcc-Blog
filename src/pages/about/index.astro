@@ -5,28 +5,27 @@ import Substats from '@/components/about/Substats.astro'
 import ToolSection from '@/components/about/ToolSection.astro'
 
 const headings = [
-  { depth: 2, slug: 'hobbies', text: 'Hobbies' },
+  // { depth: 2, slug: 'hobbies', text: 'Hobbies' },
   { depth: 2, slug: 'tools', text: 'Tools' },
   { depth: 2, slug: 'social-networks', text: 'Social Networks' },
-  { depth: 2, slug: 'gossips', text: 'Gossips' },
+  // { depth: 2, slug: 'gossips', text: 'Gossips' },
   { depth: 2, slug: 'about-blog', text: 'About Blog' }
 ]
 ---
 
 <PageLayout title='About' {headings} comment>
-  <p>Developer / Designer</p>
+  <p>Developer</p>
   <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
-    possit voluptatum.
+    👋 你好，我是 LZWcc，目前是软件工程专业的大二学生。正在努力成长为一名具备实际开发能力的
+    全栈工程师。在学习的路上，我不断挑战自己、精进技能，也热衷于探索高效的开发工具链
   </p>
   <p>
-    Motto: Stay hungry, Stay foolish. <Spoiler>这里可以夹私货，比如为什么要演奏春日影！</Spoiler>
+    <Spoiler>Motto: Stay hungry, Stay foolish.</Spoiler>
   </p>
-  <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' variant='ahead' />
+  <!-- <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' variant='ahead' /> -->
 
   {/* general-talk */}
-  <h2 id='hobbies'>Hobbies</h2>
+  <!-- <h2 id='hobbies'>Hobbies</h2>
   <ul>
     <li>Lorem ipsum dolor sit amet, vidit suscipit at mei.</li>
     <li>
@@ -35,12 +34,12 @@ const headings = [
     </li>
     <li>Ex dicat impedit mel, at eum oratio possit voluptatum.</li>
     <li>Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.</li>
-  </ul>
+  </ul> -->
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
   <p>Current support tools as follow:</p>
-  <ToolSection
+  <!-- <ToolSection
     class='mb-5'
     title='Design'
     tools={[
@@ -69,7 +68,7 @@ const headings = [
         icon: import('@/assets/tools/premiere.svg?raw')
       }
     ]}
-  />
+  /> -->
   <ToolSection
     class='mb-5'
     title='Productivity'
@@ -80,18 +79,18 @@ const headings = [
         href: 'https://www.google.com/chrome/',
         icon: import('@/assets/tools/chrome.svg?raw')
       },
-      {
-        name: 'Firefox',
-        description: 'Browser',
-        href: 'https://www.mozilla.org/en-US/firefox',
-        icon: import('@/assets/tools/firefox.svg?raw')
-      },
-      {
-        name: 'Notion',
-        description: 'Note Taking',
-        href: 'https://www.notion.so/',
-        icon: import('@/assets/tools/notion.svg?raw')
-      },
+      // {
+      //   name: 'Firefox',
+      //   description: 'Browser',
+      //   href: 'https://www.mozilla.org/en-US/firefox',
+      //   icon: import('@/assets/tools/firefox.svg?raw')
+      // },
+      // {
+      //   name: 'Notion',
+      //   description: 'Note Taking',
+      //   href: 'https://www.notion.so/',
+      //   icon: import('@/assets/tools/notion.svg?raw')
+      // },
       {
         name: 'Typora',
         description: 'Markdown Editor',
@@ -109,31 +108,31 @@ const headings = [
         description: 'IDE',
         href: 'https://code.visualstudio.com/',
         icon: import('@/assets/tools/vscode.svg?raw')
-      },
-      {
-        name: 'Neovim',
-        description: 'IDE',
-        href: 'https://neovim.io/',
-        icon: import('@/assets/tools/neovim.svg?raw')
-      },
-      {
-        name: 'Sublime Text',
-        description: 'IDE',
-        href: 'https://www.sublimetext.com/',
-        icon: import('@/assets/tools/sublime.svg?raw')
       }
+      // {
+      //   name: 'Neovim',
+      //   description: 'IDE',
+      //   href: 'https://neovim.io/',
+      //   icon: import('@/assets/tools/neovim.svg?raw')
+      // },
+      // {
+      //   name: 'Sublime Text',
+      //   description: 'IDE',
+      //   href: 'https://www.sublimetext.com/',
+      //   icon: import('@/assets/tools/sublime.svg?raw')
+      // }
     ]}
   />
   <ToolSection
     class='mb-5'
     title='Environment'
     tools={[
-      {
-        name: 'Arch Linux',
-        description: 'Linux Distribution',
-        href: 'https://archlinux.org/',
-        icon: import('@/assets/tools/archlinux.svg?raw')
-      },
+      // {
+      //   name: 'Arch Linux',
+      //   description: 'Linux Distribution',
+      //   href: 'https://archlinux.org/',
+      //   icon: import('@/assets/tools/archlinux.svg?raw')
+      // },
       {
         name: 'Ubuntu 24.04 LTS',
         description: 'Linux Distribution',
@@ -141,14 +140,14 @@ const headings = [
         icon: import('@/assets/tools/ubuntu.svg?raw')
       },
       {
-        name: 'MacOS Tahoe',
+        name: 'MacOS Sequoia',
         description: 'MacBook Air',
         href: 'https://www.apple.com/macos/',
         icon: import('@/assets/tools/apple.svg?raw')
       },
       {
         name: 'Windows 11',
-        description: 'Framework Laptop 16',
+        description: 'Laptop',
         href: 'https://news.microsoft.com/windows11-general-availability/',
         icon: import('@/assets/tools/windows11.svg?raw')
       }
@@ -157,45 +156,41 @@ const headings = [
 
   {/* social-networks */}
   <h2 id='social-networks'>Social Networks</h2>
-  <p>
-    Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
-    dissentiunt, cu meliore fuisset mei, vel quod voluptua ne.
-  </p>
   <Substats
     stats={[
       {
         platform: 'GitHub',
         icon: 'github',
-        link: 'https://github.com/cworld1',
+        link: 'https://github.com/LZWcc',
         text: 'followers',
-        api: 'github/cworld1'
+        api: 'github/LZWcc'
       },
-      {
-        platform: 'Telegram',
-        icon: 'telegram',
-        color: '#2ca5e0',
-        link: 'https://t.me/cworld0_cn',
-        text: 'subscribers',
-        api: 'telegram/cworld0_cn'
-      },
+      // {
+      //   platform: 'Telegram',
+      //   icon: 'telegram',
+      //   color: '#2ca5e0',
+      //   link: 'https://t.me/cworld0_cn',
+      //   text: 'subscribers',
+      //   api: 'telegram/cworld0_cn'
+      // },
       {
         platform: 'Steam',
         icon: 'steam',
         color: '#50769d',
-        link: 'https://steamcommunity.com/id/cworld',
+        link: 'https://steamcommunity.com/id/lzwcc',
         text: 'games',
-        api: 'steamgames/76561199021278120'
+        api: 'steamgames/76561198415290488'
       }
     ]}
   />
 
   {/* gossips */}
-  <h2 id='gossips'>Gossips</h2>
+  <!-- <h2 id='gossips'>Gossips</h2>
   <Collapse title='Lorem ipsum'>
     Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum
     dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio
     possit voluptatum.
-  </Collapse>
+  </Collapse> -->
 
   {/* about-blog */}
   <h2 id='about-blog'>About Blog</h2>
@@ -218,25 +213,16 @@ const headings = [
       }
     ]}
   />
-  <p>
-    The smooth operation and personalized customization of website also rely on the resources and
-    technical support provided by the following excellent projects/service providers:
-  </p>
+  <p>本站基于以下项目/服务提供商的资源和技术支持：</p>
   <ul>
-    <li>Domain: <a href='#' target='_blank'>Vercel</a></li>
+    <li>域名: <a href='#' target='_blank'>腾讯云</a></li>
     <li>
-      Framework & Theme: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
+      框架 & 主题: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
         href='https://github.com/cworld1/astro-theme-pure'
         target='_blank'>Astro Theme Pure</a
       >
     </li>
-    <li>
-      Site hosting: <a href='https://vercel.com/' target='_blank'>Vercel</a>
-    </li>
-    <li>
-      CI/CD: <a href='https://vercel.com/workflow' target='_blank'>Vercel Workflow</a>
-    </li>
-    <li>Comment system: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
+    <li>评论系统: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
     <li>
       Visits: <a href='https://supabase.com/' target='_blank'>Supabase</a> +
       <a href='https://waline.js.org/' target='_blank'>Waline</a>
