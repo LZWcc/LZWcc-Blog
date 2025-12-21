@@ -201,7 +201,7 @@ export const integ: IntegrationUserConfig = {
   waline: {
     enable: true,
     // Server service link // 服务端链接
-    server: import.meta.env.VITE_WALINE_SERVER || 'http://127.0.0.1/waline/',
+    server: import.meta.env.VITE_WALINE_SERVER,
     // Refer https://waline.js.org/en/guide/features/emoji.html
     // 参考 Waline Emoji 文档
     emoji: ['bmoji', 'weibo'],

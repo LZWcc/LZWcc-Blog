@@ -21,6 +21,9 @@ jobs:
       run: bun install --frozen-lockfile
 
     - name: Build project
+      env:
+        VITE_WALINE_SERVER: ${{ secrets.WALINE_SERVER }}
+        SITE_URL: ${{ secrets.SITE_URL }}
       run: bun run build
 
     - name: Deploy to Server
