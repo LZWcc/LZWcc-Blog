@@ -199,9 +199,9 @@ export const integ: IntegrationUserConfig = {
   },
   // Comment system // 评论系统
   waline: {
-    enable: false,
+    enable: true,
     // Server service link // 服务端链接
-    server: 'https://astro-theme-pure-waline.arthals.ink/',
+    server: import.meta.env.VITE_WALINE_SERVER || 'http://127.0.0.1/waline/',
     // Refer https://waline.js.org/en/guide/features/emoji.html
     // 参考 Waline Emoji 文档
     emoji: ['bmoji', 'weibo'],
@@ -213,7 +213,7 @@ export const integ: IntegrationUserConfig = {
       comment: true,
       locale: {
         reaction0: 'Like',
-        placeholder: 'Welcome to comment. (Email to receive replies. Login is unnecessary)'
+        placeholder: '欢迎评论（填写邮箱以接收回复，无需登录）'
         // 提示文本：欢迎评论（填写邮箱以接收回复，无需登录）
       },
       imageUploader: false
