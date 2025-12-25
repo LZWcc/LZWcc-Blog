@@ -14,14 +14,17 @@ const headings = [
 ---
 
 <PageLayout title='About' {headings} comment>
-  <p>Developer</p>
+  <p>
+    <Spoiler>水光潋滟晴方好, 山色空蒙雨亦奇</Spoiler>
+  </p>
   <p>
     👋 你好，我是 LZWcc，目前是软件工程专业的大二学生。正在努力成长为一名具备实际开发能力的
     全栈工程师。在学习的路上，我不断挑战自己、精进技能，也热衷于探索高效的开发工具链
   </p>
   <p>
-    <Spoiler>Motto: Stay hungry, Stay foolish.</Spoiler>
+    <figure><embed src="https://wakatime.com/share/@649e7e90-2082-4317-97cd-f973f39aa2a1/d9141826-b930-48e6-87e1-a4547bfcb560.svg"></embed></figure>
   </p>
+  
   <!-- <Button title='Sponsor Me' class='w-fit' href='/projects#sponsorship' variant='ahead' /> -->
 
   {/* general-talk */}
@@ -154,7 +157,7 @@ const headings = [
     ]}
   />
 
-  {/* social-networks */}
+  <!-- {/* social-networks */} -->
   <h2 id='social-networks'>Social Networks</h2>
   <Substats
     stats={[
@@ -215,7 +218,7 @@ const headings = [
   /> -->
   <p>本站基于以下项目/服务提供商的资源和技术支持：</p>
   <ul>
-    <li>域名: <a href='#' target='_blank'>腾讯云</a></li>
+    <li>域名: <a href='#' target='_blank'>阿里云</a></li>
     <li>
       框架 & 主题: <a href='https://astro.build/' target='_blank'>Astro</a> + <a
         href='https://github.com/cworld1/astro-theme-pure'
@@ -224,8 +227,7 @@ const headings = [
     </li>
     <li>评论系统: <a href='https://waline.js.org' target='_blank'>Waline</a></li>
     <li>
-      Visits: <a href='https://supabase.com/' target='_blank'>Supabase</a> +
-      <a href='https://waline.js.org/' target='_blank'>Waline</a>
+      Visits: <a href='https://waline.js.org/' target='_blank'>Waline</a>
     </li>
     <li>
       Other statistics: <a href='https://github.com/spencerwooo/substats' target='_blank'
