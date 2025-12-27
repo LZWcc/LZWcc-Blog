@@ -1,0 +1,201 @@
+---
+interface Props {
+  url: string
+}
+
+const { url } = Astro.props
+---
+
+<div class='pdf-viewer-container' data-url={url}>
+  <div class='loading-text' style='padding: 20px; text-align: center;'>正在加载文档...</div>
+  <div class='error-text' style='padding: 20px; color: red; text-align: center; display: none;'>
+  </div>
+  <div class='canvas-wrapper'></div>
+</div>
+
+<script>
+  // 1. 必须最先执行 Polyfill (解决 import 提升导致的问题)
+  // @ts-ignore
+  if (typeof Promise.withResolvers === 'undefined') {
+    if (typeof window !== 'undefined') {
+      // @ts-ignore
+      window.Promise.withResolvers = function () {
+        let resolve, reject
+        const promise = new Promise((res, rej) => {
+          resolve = res
+          reject = rej
+        })
+        return { promise, resolve, reject }
+      }
+    }
+  }
+
+  // @ts-ignore
+  if (typeof URL.parse === 'undefined') {
+    // @ts-ignore
+    URL.parse = function (url, base) {
+      try {
+        return new URL(url, base)
+      } catch (e) {
+        return null
+      }
+    }
+  }
+
+  // 渲染单个页面的辅助函数
+  async function renderPage(pdf: any, pageNum: number, container: HTMLElement) {
+    try {
+      const page = await pdf.getPage(pageNum)
+
+      // 优化：根据设备动态调整渲染质量
+      const isMobile = window.innerWidth < 768
+      // 手机端限制最大缩放比，避免内存溢出和渲染卡顿
+      const scale = isMobile ? Math.min(window.devicePixelRatio, 1.0) : 1.5
+
+      const viewport = page.getViewport({ scale })
+
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+
+      if (context) {
+        canvas.height = viewport.height
+        canvas.width = viewport.width
+        canvas.style.width = '100%'
+        canvas.style.height = 'auto'
+
+        // 清空容器（移除占位符）并插入 Canvas
+        container.innerHTML = ''
+        container.appendChild(canvas)
+
+        await page.render({ canvasContext: context, viewport } as any).promise
+      }
+    } catch (err) {
+      console.error(`Error rendering page ${pageNum}:`, err)
+      container.innerHTML = `<div style="text-align: center; padding: 20px; color: red;">加载第 ${pageNum} 页失败</div>`
+    }
+  }
+
+  async function initPdfViewer(container: HTMLElement) {
+    const url = container.dataset.url
+    const canvasWrapper = container.querySelector('.canvas-wrapper') as HTMLElement
+    const loadingEl = container.querySelector('.loading-text') as HTMLElement
+    const errorEl = container.querySelector('.error-text') as HTMLElement
+
+    if (!url || !canvasWrapper) return
+
+    console.log(`[PDFViewer] 开始加载: ${url}`)
+
+    try {
+      // 2. 动态导入 pdfjs-dist (Legacy 版本)，确保在 Polyfill 执行之后才加载库文件
+      // @ts-ignore
+      const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+
+      const version = pdfjsLib.version || '3.11.174'
+      console.log(`[PDFViewer] 使用库版本: ${version}`)
+
+      // 优化：使用本地 Worker，避免 CDN 网络延迟和跨域问题
+      // 文件已通过命令复制到 public/scripts/pdf.worker.min.mjs
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '/scripts/pdf.worker.min.js'
+
+      // 关键修改：开启 Range 请求，禁止自动下载全部
+      const loadingTask = pdfjsLib.getDocument({
+        url,
+        cMapUrl: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/cmaps/`, // cMap 依然用 CDN (文件太多不便复制)
+        cMapPacked: true,
+        rangeChunkSize: 1024 * 1024, // 增大分片到 1MB，减少手机端请求次数
+        disableAutoFetch: true // 禁止自动下载全部
+      })
+
+      loadingTask.onProgress = (progress: { loaded: number; total: number }) => {
+        const percent = progress.total ? Math.round((progress.loaded / progress.total) * 100) : 0
+        // 只有在初始化阶段显示进度
+        if (loadingEl && percent < 100) loadingEl.textContent = `正在初始化文档... ${percent}%`
+      }
+
+      const pdf = await loadingTask.promise
+      console.log(`[PDFViewer] 文档初始化成功，共 ${pdf.numPages} 页`)
+
+      if (loadingEl) loadingEl.style.display = 'none'
+
+      // 1. 立即渲染第一页
+      const page1Wrapper = document.createElement('div')
+      page1Wrapper.className = 'pdf-page-wrapper'
+      page1Wrapper.style.marginBottom = '16px'
+      page1Wrapper.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+      canvasWrapper.appendChild(page1Wrapper)
+
+      await renderPage(pdf, 1, page1Wrapper)
+
+      // 2. 为剩余页面创建占位符
+      if (pdf.numPages > 1) {
+        for (let i = 2; i <= pdf.numPages; i++) {
+          const placeholder = document.createElement('div')
+          placeholder.className = 'pdf-page-wrapper'
+          placeholder.dataset.pageNum = i.toString()
+          placeholder.style.marginBottom = '16px'
+          placeholder.style.boxShadow = '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+          placeholder.style.minHeight = '800px' // 预估高度，防止滚动条跳动
+          placeholder.style.background = '#f9f9f9'
+          placeholder.style.display = 'flex'
+          placeholder.style.alignItems = 'center'
+          placeholder.style.justifyContent = 'center'
+          placeholder.innerHTML = `<div style="color: #666;">正在加载第 ${i} 页...</div>`
+          canvasWrapper.appendChild(placeholder)
+        }
+
+        // 3. 使用 IntersectionObserver 实现懒加载
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const target = entry.target as HTMLElement
+                const pageNum = parseInt(target.dataset.pageNum || '0')
+
+                if (pageNum > 1 && !target.dataset.loaded) {
+                  target.dataset.loaded = 'true' // 标记为已加载，防止重复
+                  renderPage(pdf, pageNum, target)
+                  observer.unobserve(target) // 加载后停止观察
+                }
+              }
+            })
+          },
+          {
+            rootMargin: '600px' // 提前 600px 加载下一页
+          }
+        )
+
+        // 观察所有占位符
+        const placeholders = canvasWrapper.querySelectorAll('.pdf-page-wrapper[data-page-num]')
+        placeholders.forEach((el) => observer.observe(el))
+      }
+    } catch (err: any) {
+      console.error('[PDFViewer] 错误:', err)
+      if (loadingEl) loadingEl.style.display = 'none'
+      if (errorEl) {
+        errorEl.textContent = `加载失败: ${err.message}`
+        errorEl.style.display = 'block'
+      }
+    }
+  }
+
+  const init = () => {
+    const viewers = document.querySelectorAll('.pdf-viewer-container')
+    viewers.forEach((viewer) => {
+      if (viewer.getAttribute('data-loaded') !== 'true') {
+        initPdfViewer(viewer as HTMLElement)
+        viewer.setAttribute('data-loaded', 'true')
+      }
+    })
+  }
+
+  init()
+  document.addEventListener('astro:page-load', init)
+</script>
+
+<style>
+  .pdf-viewer-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+</style>
