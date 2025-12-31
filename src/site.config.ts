@@ -81,8 +81,8 @@ export const theme: ThemeUserConfig = {
     links: [
       // Registration link // 备案/注册链接
       {
-        title: 'Moe ICP 114514',
-        link: 'https://icp.gov.moe/?keyword=114514',
+        title: '湘ICP备2025152846号',
+        link: 'http://beian.miit.gov.cn/',
         style: 'text-sm' // Uno/TW CSS class
       },
       // 注意: 上面注释保留英文并添加中文说明
@@ -201,7 +201,7 @@ export const integ: IntegrationUserConfig = {
   waline: {
     enable: true,
     // Server service link // 服务端链接
-    server: import.meta.env.VITE_WALINE_SERVER,
+    server: 'https://lzwcc.xyz/waline',
     // Refer https://waline.js.org/en/guide/features/emoji.html
     // 参考 Waline Emoji 文档
     emoji: ['bmoji', 'weibo'],
