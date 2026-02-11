@@ -5,8 +5,9 @@ publishDate: 2025-12-21 16:20:16
 tags:
   - OOP
   - Java
----
 
+draft: true
+---
 ---
 
 ## 知识点
@@ -220,16 +221,16 @@ Java 异常分为**检查型异常**（编译期强制处理）和**非检查型
 
 Chartacter流与Byte流的区别是(前者是字符读写, 后者是字节读写)
 
-| 选项                  | 分析                                                                                     | 结论 |
-| --------------------- | ---------------------------------------------------------------------------------------- | ---- |
+| 选项                    | 分析                                                                                           | 结论 |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ---- |
 | A.`BufferedWriter`    | 属于**面向字符的输出流**，用于缓冲字符写入操作，并非输入流。                             | 错误 |
 | B.`FileInputStream`   | 属于**面向字节的输入流**，以字节为单位读取文件数据，不是字符流。                         | 错误 |
 | C.`ObjectInputStream` | 属于**对象输入流**，用于读取序列化的对象数据，本质是字节流的扩展，并非字符流。           | 错误 |
 | D.`InputStreamReader` | 是**字节流到字符流的转换流**，将字节输入流转换为面向字符的输入流，属于字符输入流的范畴。 | 正确 |
 
-| 选项                                                    | 分析                                                                                                                                                   | 结论 |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- |
-| A.`new BufferedWriter(new FileWriter("a.txt"))`         | `BufferedWriter` 接收 `Writer` 类型参数，`FileWriter` 是 `Writer` 的子类，语法合法。                                                                   | 正确 |
+| 选项                                                      | 分析                                                                                                                                                             | 结论 |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| A.`new BufferedWriter(new FileWriter("a.txt"))`         | `BufferedWriter` 接收 `Writer` 类型参数，`FileWriter` 是 `Writer` 的子类，语法合法。                                                                     | 正确 |
 | B.`new BufferedReader(new FileInputStream("a.dat"))`    | `BufferedReader` 要求接收 `Reader` 类型参数，但 `FileInputStream` 是字节流（属于 `InputStream` 类），并非字符流（`Reader` 类），类型不匹配，语法错误。 | 错误 |
-| C.`new GZIPOutputStream(new FileOutputStream("a.zip"))` | `GZIPOutputStream` 接收 `OutputStream` 类型参数，`FileOutputStream` 是 `OutputStream` 的子类，语法合法。                                               | 正确 |
-| D.`new ObjectInputStream(new FileInputStream("a.dat"))` | `ObjectInputStream` 接收 `InputStream` 类型参数，`FileInputStream` 是 `InputStream` 的子类，语法合法。                                                 | 正确 |
+| C.`new GZIPOutputStream(new FileOutputStream("a.zip"))` | `GZIPOutputStream` 接收 `OutputStream` 类型参数，`FileOutputStream` 是 `OutputStream` 的子类，语法合法。                                                 | 正确 |
+| D.`new ObjectInputStream(new FileInputStream("a.dat"))` | `ObjectInputStream` 接收 `InputStream` 类型参数，`FileInputStream` 是 `InputStream` 的子类，语法合法。                                                   | 正确 |
