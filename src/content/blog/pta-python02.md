@@ -5,6 +5,7 @@ publishDate: 2026-03-31 22:27:30
 tags:
   - python
 ---
+
 ## 第一题：互不相同的数，组成最大整数
 
 **代码：**
@@ -55,6 +56,10 @@ for _ in range(n):
                 ok = False
                 break
 
+        # 第一段不能是 0，除非是特殊情况 0.0.0.0
+        if ok and parts[0] == '0' and s != '0.0.0.0':
+            ok = False
+
     if ok:
         print("YES")
     else:
@@ -80,8 +85,8 @@ for name in clean_list:
     else:
         count[name] = 1
 
-# 按“次数降序，名字升序”排序
-result = sorted(count.items(), key=lambda x: (-x[1], x[0]))
+# 按"次数降序，名字降序"排序
+result = sorted(count.items(), key=lambda x: (x[1], x[0]), reverse=True)
 
 # 输出结果
 for name, cnt in result:
@@ -92,10 +97,16 @@ for name, cnt in result:
 from collections import Counter
 
 # 读入一行字符串，先按逗号拆分，再去掉每个名字两边空格
-count = Counter(name.strip() for name in input().split(","))
+names = input().split(",")
 
-# 按“次数降序，名字升序”排序后输出
-for name, cnt in sorted(count.items(), key=lambda x: (-x[1], x[0])):
+# 去掉每个名字两边的空格
+clearlst = [name.strip() for name in names]
+
+# 使用 Counter 统计每个角色出现次数
+count = Counter(clearlst)
+
+# 按"次数降序，名字降序"排序后输出
+for name, cnt in sorted(count.items(), key=lambda x: (x[1], x[0]), reverse=True):
     print(f"{name}:{cnt}")
 ```
 
