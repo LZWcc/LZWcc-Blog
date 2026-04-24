@@ -43,7 +43,7 @@ const { meta, highlightColor, back = '/', ...props } = Astro.props
       <div
         id='content'
         class={cn(
-          'max-w-none animate mt-8 md:min-w-[45ch] overflow-x-hidden',
+          'max-w-none animate mt-8 md:min-w-[45ch] overflow-x-hidden [&_:not(pre)>code]:text-[#476582] dark:[&_:not(pre)>code]:text-[#AAC8E4]',
           integ.typography.class
         )}
       >
