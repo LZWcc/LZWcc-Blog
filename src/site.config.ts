@@ -219,14 +219,15 @@ export const integ: IntegrationUserConfig = {
       },
       imageUploader: false
     }
-  },
-  // Remark42 // Remark42 评论系统
-  remark42: {
-    enable: true,
-    host: 'https://remark42.lzwcc.xyz',
-    siteId: 'lzwcc',
-    locale: 'zh'
   }
+}
+
+// Remark42 comment system config // Remark42 评论系统配置
+export const remark42Config = {
+  enable: true,
+  host: 'https://remark42.lzwcc.xyz',
+  siteId: 'lzwcc',
+  locale: 'zh'
 }
 
 export const terms: CardListData = {

@@ -1,5 +1,5 @@
 ---
-import siteConfig from '@/site-config'
+import { remark42Config } from '@/site-config'
 
 interface Props {
   view?: boolean
@@ -8,12 +8,11 @@ interface Props {
 }
 
 const { view, comment, class: className } = Astro.props
-const { remark42 } = siteConfig.integ
-const host = remark42.host ?? ''
-const siteId = remark42.siteId ?? 'remark'
+const host = remark42Config.host ?? ''
+const siteId = remark42Config.siteId ?? 'remark'
 ---
 
-{remark42.enable && (view || comment) && (
+{remark42Config.enable && (view || comment) && (
   <div class:list={['flex gap-2 text-sm text-muted-foreground', className]}>
     {comment && (
       <span class="inline-flex items-center gap-1">
@@ -26,8 +25,8 @@ const siteId = remark42.siteId ?? 'remark'
   </div>
 )}
 
-{remark42.enable && comment && (
-  <script define:vars={{ host, siteId }}>
+{remark42Config.enable && comment && (
+  <script is:inline define:vars={{ host, siteId }}>
     function loadRemark42Counter() {
       if (document.querySelector('script[src*="counter.js"]')) return
 

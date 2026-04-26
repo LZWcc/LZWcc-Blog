@@ -46,7 +46,7 @@ export const IntegrationConfigSchema = () =>
       options: z.record(z.string(), z.any()).default({ className: 'zoomable' })
     }),
 
-    /** The Waline comment system (disabled, kept for backup) */
+    /** The Waline comment system */
     waline: z.object({
       /** Enable the Waline comment system. */
       enable: z.boolean().default(false),
@@ -55,20 +55,6 @@ export const IntegrationConfigSchema = () =>
       /** The emoji to use for the Waline comment system. */
       emoji: z.array(z.string()).optional(),
       /** Additional configurations for the Waline comment system. */
-      additionalConfigs: z.record(z.string(), z.any()).default({})
-    }),
-
-    /** The Remark42 comment system */
-    remark42: z.object({
-      /** Enable the Remark42 comment system. */
-      enable: z.boolean().default(false),
-      /** The Remark42 server host URL. */
-      host: z.string().optional(),
-      /** The site ID for Remark42. */
-      siteId: z.string().default('remark'),
-      /** The locale for Remark42 UI. */
-      locale: z.string().default('zh'),
-      /** Additional configurations for Remark42. */
       additionalConfigs: z.record(z.string(), z.any()).default({})
     })
   })

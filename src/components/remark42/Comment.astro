@@ -1,19 +1,18 @@
 ---
-import siteConfig from '@/site-config'
+import { remark42Config } from '@/site-config'
 
-const { remark42 } = siteConfig.integ
-const host = remark42.host ?? ''
-const siteId = remark42.siteId ?? 'remark'
-const locale = remark42.locale ?? 'zh'
+const host = remark42Config.host ?? ''
+const siteId = remark42Config.siteId ?? 'remark'
+const locale = remark42Config.locale ?? 'zh'
 ---
 
-{remark42.enable && (
+{remark42Config.enable && (
   <div id="remark42-comment">
     <div id="remark42"></div>
   </div>
 )}
 
-<script define:vars={{ host, siteId, locale }}>
+<script is:inline define:vars={{ host, siteId, locale }}>
   function initRemark42() {
     const isDark = document.documentElement.classList.contains('dark')
 
