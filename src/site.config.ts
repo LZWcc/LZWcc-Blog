@@ -198,8 +198,9 @@ export const integ: IntegrationUserConfig = {
     }
   },
   // Comment system // 评论系统
+  // Waline (disabled, kept for backup) // Waline（已禁用，保留备份）
   waline: {
-    enable: true,
+    enable: false,
     // Server service link // 服务端链接
     server: 'https://lzwcc.xyz/waline',
     // Refer https://waline.js.org/en/guide/features/emoji.html
@@ -218,6 +219,13 @@ export const integ: IntegrationUserConfig = {
       },
       imageUploader: false
     }
+  },
+  // Remark42 // Remark42 评论系统
+  remark42: {
+    enable: true,
+    host: 'https://remark42.lzwcc.xyz',
+    siteId: 'lzwcc',
+    locale: 'zh'
   }
 }
 

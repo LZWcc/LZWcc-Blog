@@ -1,0 +1,82 @@
+---
+import siteConfig from '@/site-config'
+
+const { remark42 } = siteConfig.integ
+const host = remark42.host ?? ''
+const siteId = remark42.siteId ?? 'remark'
+const locale = remark42.locale ?? 'zh'
+---
+
+{remark42.enable && (
+  <div id="remark42-comment">
+    <div id="remark42"></div>
+  </div>
+)}
+
+<script define:vars={{ host, siteId, locale }}>
+  function initRemark42() {
+    const isDark = document.documentElement.classList.contains('dark')
+
+    window.remark_config = {
+      host: host,
+      site_id: siteId,
+      url: window.location.origin + window.location.pathname,
+      theme: isDark ? 'dark' : 'light',
+      locale: locale,
+      show_email_subscription: false,
+    }
+
+    // Load Remark42 embed script
+    const script = document.createElement('script')
+    script.src = `${host}/web/embed.js`
+    script.defer = true
+    document.head.appendChild(script)
+  }
+
+  // Watch for dark mode changes
+  function watchTheme() {
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains('dark')
+      const newTheme = isDark ? 'dark' : 'light'
+      if (window.REMARK42) {
+        window.REMARK42.changeTheme(newTheme)
+      }
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    })
+  }
+
+  // Init on page load and Astro navigation
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initRemark42()
+      watchTheme()
+    })
+  } else {
+    initRemark42()
+    watchTheme()
+  }
+
+  document.addEventListener('astro:after-swap', () => {
+    // Re-init on Astro page transitions
+    const container = document.getElementById('remark42')
+    if (container) {
+      container.innerHTML = ''
+    }
+    initRemark42()
+  })
+</script>
+
+<style>
+  #remark42-comment {
+    margin-top: 2rem;
+  }
+
+  /* Override Remark42 styles to match blog theme */
+  #remark42-comment :global(.remark42) {
+    --color-background: hsl(var(--background));
+    --color-text: hsl(var(--foreground));
+  }
+</style>

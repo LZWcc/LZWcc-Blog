@@ -1,0 +1,53 @@
+---
+import siteConfig from '@/site-config'
+
+interface Props {
+  view?: boolean
+  comment?: boolean
+  class?: string
+}
+
+const { view, comment, class: className } = Astro.props
+const { remark42 } = siteConfig.integ
+const host = remark42.host ?? ''
+const siteId = remark42.siteId ?? 'remark'
+---
+
+{remark42.enable && (view || comment) && (
+  <div class:list={['flex gap-2 text-sm text-muted-foreground', className]}>
+    {comment && (
+      <span class="inline-flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="remark42__counter" data-url={`${Astro.url.origin}${Astro.url.pathname}`}>...</span>
+      </span>
+    )}
+  </div>
+)}
+
+{remark42.enable && comment && (
+  <script define:vars={{ host, siteId }}>
+    function loadRemark42Counter() {
+      if (document.querySelector('script[src*="counter.js"]')) return
+
+      window.remark_config = window.remark_config || {
+        host: host,
+        site_id: siteId,
+      }
+
+      const script = document.createElement('script')
+      script.src = `${host}/web/counter.js`
+      script.defer = true
+      document.head.appendChild(script)
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadRemark42Counter)
+    } else {
+      loadRemark42Counter()
+    }
+
+    document.addEventListener('astro:after-swap', loadRemark42Counter)
+  </script>
+)}
