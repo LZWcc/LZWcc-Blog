@@ -230,6 +230,16 @@ export const remark42Config = {
   locale: 'zh'
 }
 
+// Umami analytics config // Umami 访问量统计配置
+export const umamiConfig = {
+  enable: true,
+  scriptUrl: process.env.PUBLIC_UMAMI_SCRIPT_URL || 'https://cloud.umami.is/script.js',
+  websiteId: process.env.PUBLIC_UMAMI_WEBSITE_ID || '',
+  hostUrl: (process.env.UMAMI_HOST_URL || 'https://cloud.umami.is').replace(/\/$/, ''),
+  statsStartAt: process.env.UMAMI_STATS_START_AT || '1970-01-01',
+  statsJsonPath: '/stats/pageviews.json'
+}
+
 export const terms: CardListData = {
   title: 'Terms content',
   list: [

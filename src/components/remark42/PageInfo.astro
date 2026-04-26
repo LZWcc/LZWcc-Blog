@@ -1,5 +1,5 @@
 ---
-import { remark42Config } from '@/site-config'
+import { remark42Config, umamiConfig } from '@/site-config'
 
 interface Props {
   view?: boolean
@@ -10,22 +10,72 @@ interface Props {
 const { view, comment, class: className } = Astro.props
 const host = remark42Config.host ?? ''
 const siteId = remark42Config.siteId ?? 'remark'
+const statsJsonPath = umamiConfig.statsJsonPath
+const showViews = umamiConfig.enable && !!umamiConfig.websiteId && view
+const showComments = remark42Config.enable && comment
 ---
 
-{remark42Config.enable && (view || comment) && (
+{(showViews || showComments) && (
   <div class:list={['flex gap-2 text-sm text-muted-foreground', className]}>
-    {comment && (
+    {showViews && (
+      <span class="inline-flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span><span class="umami-pageview-count" data-path={Astro.url.pathname}>...</span> views</span>
+      </span>
+    )}
+    {showComments && (
       <span class="inline-flex items-center gap-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
-        <span class="remark42__counter" data-url={`${Astro.url.origin}${Astro.url.pathname}`}>...</span>
+        <span><span class="remark42__counter" data-url={`${Astro.url.origin}${Astro.url.pathname}`}>...</span> comments</span>
       </span>
     )}
   </div>
 )}
 
-{remark42Config.enable && comment && (
+{showViews && (
+  <script is:inline define:vars={{ statsJsonPath }}>
+    var PAGEVIEWS_CACHE_KEY = '__umamiPageviewsPromise'
+
+    function normalizeUmamiPath(path) {
+      const pathname = path.split(/[?#]/)[0]
+      const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
+      return normalized === '/' ? normalized : normalized.replace(/\/+$/, '')
+    }
+
+    function getUmamiPageviews() {
+      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath)
+        .then((response) => response.ok ? response.json() : {})
+        .catch(() => ({}))
+
+      return window[PAGEVIEWS_CACHE_KEY]
+    }
+
+    async function renderUmamiPageviews() {
+      const pageviews = await getUmamiPageviews()
+
+      document.querySelectorAll('.umami-pageview-count').forEach((element) => {
+        const path = element.dataset.path || window.location.pathname
+        const normalized = normalizeUmamiPath(path)
+        element.textContent = String(pageviews[path] ?? pageviews[normalized] ?? pageviews[`${normalized}/`] ?? 0)
+      })
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderUmamiPageviews)
+    } else {
+      renderUmamiPageviews()
+    }
+
+    document.addEventListener('astro:after-swap', renderUmamiPageviews)
+  </script>
+)}
+
+{showComments && (
   <script is:inline define:vars={{ host, siteId }}>
     function loadRemark42Counter() {
       if (document.querySelector('script[src*="counter.js"]')) return
