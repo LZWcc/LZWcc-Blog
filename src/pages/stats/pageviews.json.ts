@@ -38,14 +38,16 @@ const getMetricViews = (metric: UmamiMetric) =>
   Number(metric.pageviews ?? metric.views ?? metric.y ?? 0)
 
 const getPageviews = async () => {
-  const token = process.env.UMAMI_API_TOKEN
+  const apiKey = process.env.UMAMI_API_KEY
 
-  if (!umamiConfig.websiteId || !token) {
-    console.warn('[umami] Missing website id or API token, writing empty pageviews stats.')
+  if (!umamiConfig.websiteId || !apiKey) {
+    console.warn(
+      `[umami] Missing ${!umamiConfig.websiteId ? 'PUBLIC_UMAMI_WEBSITE_ID' : 'UMAMI_API_KEY'}, writing empty pageviews stats.`
+    )
     return {}
   }
 
-  const url = new URL(`/api/websites/${umamiConfig.websiteId}/metrics/expanded`, umamiConfig.hostUrl)
+  const url = new URL(`websites/${umamiConfig.websiteId}/metrics`, `${umamiConfig.apiEndpoint}/`)
   url.searchParams.set('startAt', String(getStartAt()))
   url.searchParams.set('endAt', String(Date.now()))
   url.searchParams.set('type', 'path')
@@ -54,7 +56,7 @@ const getPageviews = async () => {
   try {
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        'x-umami-api-key': apiKey,
         Accept: 'application/json'
       }
     })
