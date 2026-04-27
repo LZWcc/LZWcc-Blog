@@ -48,7 +48,7 @@ const showComments = remark42Config.enable && comment
     }
 
     function getUmamiPageviews() {
-      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath)
+      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath, { cache: 'no-store' })
         .then((response) => response.ok ? response.json() : {})
         .catch(() => ({}))
 

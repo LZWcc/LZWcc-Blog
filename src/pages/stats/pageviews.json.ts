@@ -3,10 +3,11 @@ import type { APIRoute } from 'astro'
 import { umamiConfig } from '@/site-config'
 
 type UmamiMetric = {
+  name?: string
   x?: string
-  y?: number
-  views?: number
   pageviews?: number
+  views?: number
+  y?: number
 }
 
 type Pageviews = Record<string, number>
@@ -31,8 +32,10 @@ const addPageview = (pageviews: Pageviews, path: string, views: number) => {
   }
 }
 
+const getMetricPath = (metric: UmamiMetric) => metric.name ?? metric.x
+
 const getMetricViews = (metric: UmamiMetric) =>
-  Number(metric.y ?? metric.views ?? metric.pageviews ?? 0)
+  Number(metric.pageviews ?? metric.views ?? metric.y ?? 0)
 
 const getPageviews = async () => {
   const token = process.env.UMAMI_API_TOKEN
@@ -42,10 +45,10 @@ const getPageviews = async () => {
     return {}
   }
 
-  const url = new URL(`/api/websites/${umamiConfig.websiteId}/metrics`, umamiConfig.hostUrl)
+  const url = new URL(`/api/websites/${umamiConfig.websiteId}/metrics/expanded`, umamiConfig.hostUrl)
   url.searchParams.set('startAt', String(getStartAt()))
   url.searchParams.set('endAt', String(Date.now()))
-  url.searchParams.set('type', 'url')
+  url.searchParams.set('type', 'path')
   url.searchParams.set('limit', '10000')
 
   try {
@@ -65,8 +68,9 @@ const getPageviews = async () => {
     const pageviews: Pageviews = {}
 
     for (const metric of metrics) {
-      if (!metric.x) continue
-      addPageview(pageviews, metric.x, getMetricViews(metric))
+      const path = getMetricPath(metric)
+      if (!path) continue
+      addPageview(pageviews, path, getMetricViews(metric))
     }
 
     return pageviews
