@@ -1,0 +1,533 @@
+---
+title: 面试复盘（一）：网站性能、Vue 3、计算机网络与 MySQL
+description: 整理第一次技术面没答出来的七个问题，补上答题骨架、关键原理和代码示例。
+publishDate: 2026-10-02
+tags:
+  - 面试复盘
+  - Vue
+  - 计算机网络
+  - MySQL
+language: zh
+draft: false
+---
+
+import HttpsRequestFlow from '@/components/blog/HttpsRequestFlow.astro'
+
+第一次真实技术面，这几个问题我几乎都没答出来。逐个补上理解，作为下一次面试前的复习笔记。
+
+## 1. 如何排查一个网站加载过慢？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 先定位慢在哪一段，再针对性优化，最后用指标验证。
+
+1. **确认现象**：首屏白屏、资源加载慢，还是交互卡顿；先稳定复现
+2. **看 Network**：瀑布图和 Timing，拆成 DNS、连接/TLS、TTFB、下载，判断是网络、后端还是资源问题
+3. **看 Performance**：请求都结束了还慢，就找主线程长任务、布局和绘制
+4. **验证**：用 LCP、INP、CLS 对比优化前后
+
+**可能追问：** TTFB 高一定是后端慢吗？LCP、INP、CLS 分别是什么，阈值多少？
+
+</div>
+
+### 先分清楚慢在哪里
+
+“加载慢”可能是打开后一直白屏、图片迟迟不出现，也可能是页面已经出现，但点击按钮没反应。不同现象对应不同检查方向。
+
+我会先确认：哪个页面、什么操作、首次访问还是再次访问、所有用户还是特定地区或设备。记录一次可复现的过程，再比较正常和异常情况。
+
+### 先理解一次 HTTPS 请求的过程
+
+排查之前，先知道请求经历了哪些阶段。下面以通过新建 TCP 连接访问 HTTPS 网站为例，把 DNS、TLS、TTFB 等术语串起来；Initiator 则用于追踪请求由谁触发。
+
+<HttpsRequestFlow />
+
+### 按请求和渲染链路排查
+
+打开 DevTools 的 Network，重新加载页面，查看瀑布图和请求的 Timing。首次访问可以禁用缓存测试，但也要保留正常缓存下的对照。
+
+| 看到的现象 | 先检查什么 | 后续方向 |
+| --- | --- | --- |
+| DNS、连接、TLS 阶段长 | 域名解析、网络延迟、连接复用 | 从不同网络复测，检查连接和 CDN |
+| Waiting / TTFB 长 | HTML 或 API 等待首字节时间 | 结合服务端日志查排队、业务处理、数据库和上游服务 |
+| Content Download 长 | 响应大小、带宽、压缩和缓存 | 减少传输内容，优化图片、压缩和缓存 |
+| 请求很多，而且串行发生 | 请求之间的依赖和 Initiator | 消除不必要的瀑布请求，独立任务可并行 |
+| 请求结束了，页面仍迟迟不显示 | 主线程执行、样式计算、布局、绘制 | 在 Performance 中定位长任务和渲染阻塞 |
+
+**TTFB 高不能直接判定为 SQL 慢**，它还受网络往返和服务器其他处理影响。浏览器证据只能帮助缩小范围，具体后端原因需要服务端证据。[Network Timing 说明](https://developer.chrome.com/docs/devtools/network/reference#timing-explanation)
+
+如果主要资源已经下载完，就录制 Performance，看时间花在 JavaScript、布局还是绘制上。例如：同步计算阻塞主线程、大量 DOM 同时渲染、反复读取布局后写样式，都可能让用户觉得页面卡住。
+
+### 用指标验证效果
+
+<details style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+<summary style={{ cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>展开了解 LCP、INP、CLS：内容出来、点击响应、页面乱跳</summary>
+
+这三个是 **Core Web Vitals（核心网页指标）**，分别衡量加载、交互响应和视觉稳定性。
+
+| 指标 | 用户的感受 | 含义与例子 | 良好阈值 |
+| --- | --- | --- | --- |
+| **LCP**（Largest Contentful Paint，最大内容绘制） | 主要内容多久出来？ | 从开始加载，到视口内最大的合格图片或文本块绘制出来。例如首屏主图终于显示。 | ≤ 2.5 秒 |
+| **INP**（Interaction to Next Paint，交互到下一次绘制） | 点了之后多久有反馈？ | 观察一次访问中的点击、触摸和键盘交互，以接近最慢的交互延迟代表整体响应性。例如点击菜单后多久展开。 | ≤ 200 毫秒 |
+| **CLS**（Cumulative Layout Shift，累计布局偏移） | 页面会不会突然乱跳？ | 衡量意外布局偏移，取最严重的一段偏移窗口的累计分数。例如上方图片加载后，把正要点击的按钮挤走。 | ≤ 0.1（无单位） |
+
+**容易混淆的地方：** LCP 不等于所有资源下载完；INP 看的是下一次绘制的反馈，不是等待接口业务全部完成；CLS 也不只观察加载阶段，用户操作引起的预期位移通常不计入。
+
+LCP 慢时结合 Network 和 Performance 查关键资源与渲染；INP 差时重点看主线程长任务；CLS 高时检查图片是否预留尺寸、内容是否突然插入等。这些阈值用于真实用户数据时，要按移动端、桌面端分别看第 75 百分位，不能凭一次本地测试判断整体达标。[指标定义与阈值](https://web.dev/articles/vitals)
+
+</details>
+
+修复后用相同设备、网络和操作复测。实验室测试适合复现问题，线上真实用户数据能判断问题是否普遍存在。
+
+## 2. Vue 3 相对于 Vue 2 有哪些变化？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 主要变化在响应式原理、代码组织方式和渲染性能三方面。
+
+1. **响应式**：`Object.defineProperty` → `Proxy`，能检测新增、删除属性和数组下标，支持 `Map`、`Set`
+2. **代码组织**：在 Options API 之外新增 Composition API，用 composable 替代 mixins，TS 类型推断更好
+3. **渲染**：编译器标记静态和动态内容，减少运行时比较（见第 4 题）
+4. **其他**：Fragment 多根节点、Teleport；迁移时注意 v-model 等破坏性变化
+
+**可能追问：** Proxy 比 defineProperty 好在哪？mixins 有什么问题？（见下方两个折叠块）Vue 3 必须用 Composition API 吗？
+
+</div>
+
+| 维度 | Vue 2 | Vue 3 |
+| --- | --- | --- |
+| 对象响应式 | 主要通过 `Object.defineProperty` 劫持属性 | 主要通过 `Proxy` 代理对象 |
+| 变更检测 | 新增、删除对象属性，以及数组索引赋值、修改长度存在限制 | 对代理对象的这些操作可以被追踪，也支持 `Map`、`Set` |
+| 逻辑组织 | 常用 Options API（选项式 API），复用常见 mixins | 可使用 Composition API（组合式 API），把相关逻辑组织成 composable |
+| TypeScript | 能使用，但复杂选项和 mixins 的推断较困难 | Composition API 的变量、函数更利于类型推断 |
+| 模板与渲染 | 已有静态优化和虚拟 DOM | 编译器给运行时更多提示，减少无用比较 |
+| 组件能力 | 通常单个根节点 | 支持 Fragment 多根节点、Teleport 等 |
+
+Vue 3 的 `ref` 通过 `.value` 的 getter/setter 跟踪访问，不能笼统地说所有响应式都只用 Proxy。[Vue 2 响应式说明](https://v2.vuejs.org/v2/guide/reactivity.html)、[Vue 3 响应式原理](https://vuejs.org/guide/extras/reactivity-in-depth.html)
+
+<details style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+<summary style={{ cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>展开了解对象响应式原理：defineProperty 拦截属性，Proxy 拦截对象</summary>
+
+两者思路相同：**读取时收集依赖（谁用了这个数据），写入时通知依赖更新**。区别在于拦截的对象不同。
+
+**Vue 2**：初始化时递归遍历 `data`，把**每个已有属性**改写成 getter/setter。
+
+```js
+// 简化示意，非源码
+function defineReactive(obj, key, val) {
+  observe(val) // 值是对象就继续递归，初始化时一次性转完
+  Object.defineProperty(obj, key, {
+    get() {
+      dep.depend() // 收集依赖
+      return val
+    },
+    set(newVal) {
+      val = newVal
+      dep.notify() // 通知更新
+    }
+  })
+}
+```
+
+因为只拦截"已经存在的某个属性"，所以新增、删除属性检测不到。
+
+**Vue 3**：用 `Proxy` 代理**整个对象**，所有读、写、删除操作都会经过它。
+
+```js
+// 简化示意，非源码
+function reactive(target) {
+  return new Proxy(target, {
+    get(t, key, receiver) {
+      track(t, key) // 收集依赖
+      const res = Reflect.get(t, key, receiver)
+      return isObject(res) ? reactive(res) : res // 访问到嵌套对象时才代理（懒代理）
+    },
+    set(t, key, value, receiver) {
+      const ok = Reflect.set(t, key, value, receiver)
+      trigger(t, key) // 新增属性同样会走到这里
+      return ok
+    },
+    deleteProperty(t, key) {
+      const ok = Reflect.deleteProperty(t, key)
+      trigger(t, key) // 删除属性也能检测
+      return ok
+    }
+  })
+}
+```
+
+| 操作／维度 | Vue 2 | Vue 3 |
+| --- | --- | --- |
+| 新增属性 `obj.newKey = 1` | 检测不到，用 `this.$set` | 能检测 |
+| 删除属性 `delete obj.key` | 检测不到，用 `this.$delete` | 能检测 |
+| 数组下标赋值 `arr[0] = x`、改 `length` | 检测不到，用 `$set` 或 `splice` | 能检测 |
+| `push`、`splice` 等 7 个变更方法 | 能检测（Vue 改写了数组原型方法） | 能检测 |
+| `Map`、`Set` | 不支持 | 支持 |
+| 嵌套对象 | 初始化时全部递归转换 | 访问时才转换，初始化成本更低 |
+| 兼容性 | 支持 IE9+ | 不支持 IE（`Proxy` 无法 polyfill） |
+
+**面试一句话：** Vue 2 用 `defineProperty` 在初始化时递归劫持每个已有属性，所以新增、删除属性和数组下标赋值检测不到，要用 `$set`；Vue 3 用 `Proxy` 代理整个对象，这些操作都能拦截，还支持 `Map`、`Set`，嵌套对象按需懒代理。代价是不支持 IE，基本类型仍需 `ref`。
+
+</details>
+
+### 两个容易答错的点
+
+- Vue 3 **仍然支持 Options API**，不要求全部改成 Composition API。
+- Composition API **不是 Vue 3 独占**，Vue 2.7 也内置了它。比较版本时要说明具体版本，而不是只比较写法。
+
+Composition API 的重点是逻辑组织与复用。例如，把搜索词、请求、加载状态和取消请求放在一个 `useSearch()` 中，比把同一功能分散在多个选项里更容易维护，但它不会自动让业务代码变快。[Composition API FAQ](https://vuejs.org/guide/extras/composition-api-faq)
+
+<details style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+<summary style={{ cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>展开了解 mixins（混入）与 composable（组合式函数）：为什么 Vue 3 推荐后者</summary>
+
+Vue 2 中，多个组件共用一段逻辑，最常用 **mixins**：把 `data`、`methods`、生命周期等选项写成一个对象，组件引入后 Vue 会把它**合并**进组件。
+
+```js
+// mouseMixin.js
+export default {
+  data() {
+    return { x: 0, y: 0 }
+  },
+  methods: {
+    update(e) {
+      this.x = e.pageX
+      this.y = e.pageY
+    }
+  },
+  mounted() {
+    window.addEventListener('mousemove', this.update)
+  },
+  beforeDestroy() {
+    window.removeEventListener('mousemove', this.update)
+  }
+}
+
+// 组件中：mixins: [mouseMixin]，模板里直接用 x、y，但看不出它们从哪来
+```
+
+mixins 的三个问题：
+
+1. **来源不清**：`this.x` 来自哪个 mixin，要逐个文件找。
+2. **命名冲突**：多个 mixin 或组件定义了同名属性，会按合并规则静默覆盖。
+3. **隐式依赖**：mixin 可能依赖组件"应该有"的某个属性，但这种约定没有写在任何地方。
+
+Vue 3 用 **composable** 替代：它就是一个普通函数，显式调用、显式返回。
+
+```js
+// useMouse.js
+import { ref, onMounted, onUnmounted } from 'vue'
+
+export function useMouse() {
+  const x = ref(0)
+  const y = ref(0)
+  const update = (e) => {
+    x.value = e.pageX
+    y.value = e.pageY
+  }
+  onMounted(() => window.addEventListener('mousemove', update))
+  onUnmounted(() => window.removeEventListener('mousemove', update))
+  return { x, y }
+}
+
+// 组件中：来源清楚，冲突时可以重命名
+// const { x, y } = useMouse()
+// const { x: scrollX } = useScroll()
+```
+
+**面试一句话：** mixins 靠合并选项复用逻辑，存在来源不清、命名冲突、隐式依赖的问题；composable 是普通函数，显式调用、显式返回，解决了这些问题。[Composables](https://vuejs.org/guide/reusability/composables)
+
+</details>
+
+迁移细节参考：[Vue 3 Breaking Changes](https://v3-migration.vuejs.org/breaking-changes/)。
+
+## 3. Vue 3 的响应式有哪些限制或容易踩的坑？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** Vue 3 的响应式依赖“通过代理读写”，绕开代理就追踪不到。
+
+1. **解构**：基本类型属性解构成普通变量后不再更新 → 用 `toRefs`
+2. **替换变量**：给变量重新赋值一个新的 reactive，原有依赖收不到通知 → 需要整体替换时用 `ref`
+3. **原始对象**：直接修改原始对象不触发更新 → 统一使用代理对象
+4. **DOM 异步更新**：改完状态立即读 DOM 还是旧的 → `await nextTick()`
+
+**可能追问：** `ref` 和 `reactive` 怎么选？解构 `defineProps()` 会丢失响应式吗？
+
+</div>
+
+Vue 3 只有通过代理对象（或 `ref.value`）读写才会被追踪，原理见第 2 题的折叠块。下面前三个坑本质上都是**读写绕开了代理**；后两个则和更新调度、编译处理有关。
+
+### 解构基本类型属性后，普通变量不会继续跟随更新
+
+```js
+import { reactive, toRefs } from 'vue'
+
+const state = reactive({ count: 0 })
+const { count } = state
+
+state.count++
+console.log(count) // 0：这只是解构时得到的数字
+
+const { count: countRef } = toRefs(state)
+state.count++
+console.log(countRef.value) // 2：仍然通过 ref 关联 state.count
+```
+
+不是 `state` 失去响应式，而是普通数字变量不再通过代理读取属性。解构出的值如果是一个响应式对象，对该对象的嵌套修改仍可以被追踪；但父属性被替换后，旧变量不会自动指向新对象。
+
+### 替换局部变量，不等于通知原来的依赖
+
+```js
+import { reactive, ref, watchEffect } from 'vue'
+
+let state = reactive({ count: 0 })
+watchEffect(() => console.log(state.count))
+
+state = reactive({ count: 1 }) // 普通变量赋值，本身不会触发上面的 effect
+
+// 需要整体替换时，用 ref 作为稳定的响应式入口
+const form = ref({ name: '' })
+form.value = { name: 'LZWcc' }
+```
+
+`reactive()` 适用于对象、数组、集合，不能直接把一个数字变成响应式。基本类型或需要整体替换的状态可以用 `ref()`。[响应式基础与限制](https://vuejs.org/guide/essentials/reactivity-fundamentals#limitations-of-reactive)
+
+### 代理对象和原始对象不是同一个引用
+
+```js
+import { reactive } from 'vue'
+
+const raw = { count: 0 }
+const state = reactive(raw)
+
+console.log(state === raw) // false
+raw.count++ // 绕过代理，不会由这次写入触发响应式更新
+state.count++ // 通过代理修改
+```
+
+`raw.count++` 确实修改了底层数据，只是没有触发通知；以后发生其他更新时可能读到这个新值，因此更容易造成误解。业务里应尽量统一使用代理，避免混用原始对象和代理对象。[响应式深入](https://vuejs.org/guide/extras/reactivity-in-depth.html)
+
+### 状态更新不等于 DOM 已更新
+
+修改响应式状态后立即读取 DOM，可能还是旧结果。需要读取更新后的 DOM 时使用 `await nextTick()`，而不是凭感觉加一个 `setTimeout()`。这是批量更新的调度机制，不是响应式失效。
+
+### 注意 Vue 3.5 的 props 解构例外
+
+在 Vue 3.5+ 的同一个 `<script setup>` 中，编译器会对从 `defineProps()` 解构出的变量访问进行处理，使其保持响应性。这个能力不适用于任意 `reactive()` 解构。
+
+```vue
+<script setup>
+import { watch } from 'vue'
+
+const { title } = defineProps(['title'])
+
+// 传入 getter，watch 才能追踪读取；不是传入当前字符串值
+watch(() => title, (value) => console.log(value))
+</script>
+```
+
+所以，“Vue 3 解构一定丢失响应式”说得过于绝对，要区分对象、值类型、编译上下文与版本。[Reactive Props Destructure](https://vuejs.org/api/sfc-script-setup.html#reactive-props-destructure)
+
+## 4. Vue 3 框架自身做了哪些性能优化？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 核心是编译器和运行时配合：编译时分析模板，运行时只处理会变的部分。
+
+1. **静态提升／缓存**：不变的节点只创建一次，更新时复用
+2. **Patch Flags**：标记节点哪部分是动态的（文本、class 等），只比较这部分
+3. **Block Tree**：直接收集动态子节点，跳过静态结构的逐层遍历
+4. **tree-shaking**：没用到的 API 打包时去掉，减小体积
+
+**可能追问：** 批量异步更新是 Vue 3 新增的吗？
+
+</div>
+
+这道题先讲框架原理。第五题再讲我写项目时可以采取的措施。
+
+### 编译阶段识别哪些内容会变
+
+```vue
+<template>
+  <section>
+    <h2>面试复习</h2>
+    <p>{{ count }}</p>
+  </section>
+</template>
+```
+
+当 `count` 更新时，标题并没有变化。Vue 编译器可以分析模板，把这些信息留给运行时，减少重复工作。
+
+| 机制 | 解决什么问题 |
+| --- | --- |
+| 静态内容缓存／静态提升 | 复用不变的节点或表达式，避免每次更新都重新创建和比较；具体生成形式随版本变化 |
+| Patch Flags | 标记节点的动态部分，例如只需更新文本或 class，避免逐项全面检查 |
+| Block Tree / 动态子节点收集 | 在稳定结构内直接追踪动态节点，减少逐层遍历静态结构 |
+
+重点是 Vue 3 进一步利用编译信息，缩小运行时 diff 需要处理的范围。[Vue 渲染机制](https://vuejs.org/guide/extras/rendering-mechanism)
+
+### 构建体积与更新调度
+
+支持 tree-shaking 的 API 配合构建工具，可以移除未使用的功能，减少下载和执行的 JavaScript。
+
+Vue 会批量处理组件更新，同一轮同步代码连续修改状态，不会每次都立刻更新 DOM。注意这在 Vue 2 中就已存在，不算 Vue 3 新增。[Vue 性能指南](https://vuejs.org/guide/best-practices/performance)、[Vue 2 更新队列](https://v2.vuejs.org/v2/guide/reactivity.html#Async-Update-Queue)
+
+## 5. 开发 Vue 3 项目时有哪些性能优化手段？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 先测量，区分加载慢还是更新慢，再对症优化并复测。
+
+1. **加载**：路由懒加载、异步组件、精简依赖、图片尺寸与懒加载、按需考虑 SSR／SSG
+2. **更新**：大列表分页或虚拟列表；传稳定的 props 减少子组件更新；`computed` 缓存；大型数据用 `shallowRef`
+3. **高频操作**：输入防抖、取消过期请求
+4. **验证**：优化后复测，说明指标变化和代价
+
+**可能追问：** 首屏图片能懒加载吗？`v-memo` 有什么风险？
+
+</div>
+
+先测量瓶颈，再分别考虑**加载性能**和**更新性能**。
+
+### 加载阶段：少下载、少阻塞
+
+- 路由按需加载，把暂时不用的页面代码拆出去；大型非首屏组件按需异步加载。
+- 检查打包产物，减少重复或过大的依赖，确认按需导入是否有效。
+- 图片使用适当尺寸和格式，非首屏图片可延迟加载；首屏关键图片不应盲目懒加载。
+- 根据业务考虑 SSG 或 SSR，并衡量服务端成本与客户端 hydration 成本。
+
+```js
+// Vue Router 的路由懒加载
+const routes = [
+  {
+    path: '/interview',
+    component: () => import('./pages/Interview.vue')
+  }
+]
+```
+
+这些措施影响不同阶段，应结合请求与渲染关键路径判断优先级。[Vue 性能指南](https://vuejs.org/guide/best-practices/performance)、[理解关键渲染路径](https://web.dev/learn/performance/understanding-the-critical-path)
+
+### 更新阶段：减少不必要的工作
+
+| 场景 | 可采取的措施 | 需要理解的边界 |
+| --- | --- | --- |
+| 大列表 | 分页或虚拟列表 | 虚拟列表主要减少同时存在的 DOM，不会自动减少服务器返回的数据 |
+| 父状态变化导致大量子组件更新 | 传递稳定、必要的 props | 避免每次都创建语义相同的新对象 |
+| 重复派生计算 | 使用 `computed` | 缓存依赖结果，不代表首次计算没有成本 |
+| 大型不可变数据 | 考虑 `shallowRef` | 嵌套修改不会自动通知，需要替换根值或显式触发 |
+| 高频输入与请求 | 防抖、取消过期请求 | 防抖降低触发频率，取消或结果校验处理响应乱序 |
+
+`v-once` 适用于确定不再更新的内容，`v-memo` 可以按依赖跳过子树更新，但依赖遗漏会导致显示陈旧。先确认有收益，再使用这些优化。[Vue 更新性能优化](https://vuejs.org/guide/best-practices/performance#update-optimizations)
+
+例如列表选中态，把“是否选中”算好后传给行组件：
+
+```vue
+<Row
+  v-for="item in items"
+  :key="item.id"
+  :item="item"
+  :active="item.id === activeId"
+/>
+```
+
+在 `item` 引用稳定等条件下，切换 `activeId` 时，大多数行的 props 不变，有助于跳过其更新。`key` 要表达稳定身份，不要用随机值强迫重建。
+
+## 6. 计算机网络的五层是什么？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 从上到下是应用层、传输层、网络层、数据链路层、物理层。
+
+1. **应用层**：应用之间的消息格式，如 HTTP、DNS
+2. **传输层**：进程之间通信，用端口区分应用，如 TCP、UDP
+3. **网络层**：IP 寻址和跨网络路由
+4. **数据链路层**：相邻节点之间传输帧，如以太网、Wi-Fi
+5. **物理层**：把比特变成电、光、无线信号
+
+**加分：** 用一次 HTTP 请求串起来：发送时逐层封装，接收时逐层拆开。
+
+**可能追问：** 和 OSI 七层、TCP/IP 四层有什么区别？经过路由器时帧会变吗？
+
+</div>
+
+从上往下记：**应用、传输、网络、数据链路、物理**。传输层在部分教材中也叫运输层。
+
+| 层次 | 主要职责 | 例子 | 常见数据单位 |
+| --- | --- | --- | --- |
+| 应用层 | 定义应用之间交换消息的规则 | HTTP、DNS、SMTP | 报文 |
+| 传输层 | 端到端的进程通信，使用端口区分应用 | TCP、UDP | TCP 报文段、UDP 数据报 |
+| 网络层 | IP 寻址和跨网络路由 | IPv4、IPv6、ICMP | 分组／IP 数据报 |
+| 数据链路层 | 相邻节点之间传输帧、进行差错检测等 | 以太网、Wi-Fi 的链路部分 | 帧 |
+| 物理层 | 在介质上传输比特，规定信号等特性 | 电信号、光信号、无线信号 | 比特 |
+
+### 用一次 HTTP 请求串起来
+
+以 **HTTP/1.1 over TCP** 为例，先省略加密细节：应用生成 HTTP 请求，传输层通过 TCP 提供可靠、有序的字节流，网络层用 IP 寻址并经路由器转发，链路层在每一跳封装成帧，物理层把比特变成信号发送。
+
+接收端逐层处理，最终把请求交给服务器应用。经过路由器时，链路帧会按下一跳重新封装，不是一个以太网帧原封不动穿过整个互联网。
+
+### 不要混淆三种模型
+
+- 五层模型是常见的教学划分。
+- OSI 是七层，多出会话层、表示层等划分。
+- TCP/IP 通常按四层描述，把物理与链路相关内容归入链路层。
+
+RFC 1122 描述了互联网协议族的分层结构，可用来对照 TCP/IP 模型，不能把它直接称为“五层标准”。[RFC 1122](https://www.rfc-editor.org/rfc/rfc1122.html#section-1.1.3)
+
+## 7. MySQL 有哪些存储引擎？
+
+<div style={{ border: '1px solid hsl(var(--border))', borderRadius: '0.75rem', padding: '0.75rem 1rem', marginBlock: '1rem' }}>
+
+**答题骨架**
+
+**一句话：** 常见的是 InnoDB、MyISAM、MEMORY，一般业务用默认的 InnoDB。
+
+1. **InnoDB**：默认引擎；支持事务、行级锁、MVCC、崩溃恢复、外键
+2. **MyISAM**：不支持事务和外键，表级锁，老项目可能遇到
+3. **MEMORY**：数据在内存中，重启后丢失，表级锁
+4. **补充**：存储引擎是表级别的选择；还有 CSV、ARCHIVE 等专用引擎，用 `SHOW ENGINES` 查看
+
+**可能追问：** 为什么一般业务选 InnoDB？行级锁一定只锁一行吗？
+
+</div>
+
+存储引擎负责表数据的存储、索引和访问等工作。它是**表级别**的选择，同一个数据库可以有使用不同引擎的表。
+
+| 引擎 | 需要记住的特点 |
+| --- | --- |
+| InnoDB | 默认引擎；支持事务、崩溃恢复、外键，使用行级锁和 MVCC 支持并发 |
+| MyISAM | 不支持事务和外键约束，采用表级锁；老项目可能遇到 |
+| MEMORY | 数据放在内存中，重启后行数据丢失；不支持事务，采用表级锁 |
+| CSV | 以 CSV 文本形式存储数据，适合特定交换场景，不支持索引 |
+| ARCHIVE | 面向压缩归档场景，能力有专门限制 |
+| BLACKHOLE | 接收写入但不保存数据，可用于特定复制或测试场景 |
+| NDB | 用于 MySQL NDB Cluster，不代表普通 MySQL 实例默认可用 |
+
+实际可用引擎应在当前实例检查：[MySQL 8.4 存储引擎文档](https://dev.mysql.com/doc/refman/8.4/en/storage-engines.html)。
+
+```sql
+-- 查看当前实例支持的引擎
+SHOW ENGINES;
+
+-- 查看已有表的引擎
+SHOW CREATE TABLE your_table;
+```
+
+### 为什么一般业务选择 InnoDB？
+
+订单、库存这类数据通常需要事务的一致性保障；InnoDB 的事务、崩溃恢复和并发控制能力适合这类需求。MVCC 让一致性读可以读取合适的数据版本，但**不表示所有读操作都不加锁**，例如锁定读和普通快照读不同。
+
+“支持行锁”也不意味着任何语句都只锁一行。实际锁定范围受索引、查询条件和隔离级别影响，不能只看 SQL 表面写了一个条件。[InnoDB 简介](https://dev.mysql.com/doc/refman/8.4/en/innodb-introduction.html)

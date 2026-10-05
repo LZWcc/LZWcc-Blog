@@ -1,0 +1,141 @@
+---
+const steps = [
+  {
+    name: 'DNS', label: '找到服务器', question: '这个域名对应哪个 IP？',
+    detail: '浏览器先解析域名，获得服务器的 IP 地址。已有 DNS 缓存时，这一步可能很快，或不需要再次查询。',
+    timing: 'DNS Lookup', emphasis: false
+  },
+  {
+    name: 'TCP', label: '建立连接', question: '先与服务器建立通信连接。',
+    detail: '浏览器与服务器通过 TCP 握手建立连接，为后续可靠、有序地传输数据做准备。网络距离、丢包等会影响连接耗时。',
+    timing: 'Initial connection（包含连接建立等耗时）', emphasis: false
+  },
+  {
+    name: 'TLS', label: '建立加密通信', question: '确认对方身份，协商如何加密。',
+    detail: 'TLS 是 Transport Layer Security（传输层安全协议）。握手时，浏览器验证服务器证书，双方协商加密参数和密钥，保护后续的 HTTP 通信。HTTPS 就是通过 TLS 保护 HTTP。',
+    timing: 'SSL（DevTools 中常用的名称）', emphasis: true
+  },
+  {
+    name: 'HTTP', label: '发送请求', question: '告诉服务器：我需要这个网页或数据。',
+    detail: '连接准备好后，浏览器发送 HTTP 请求，包括请求方法、路径、请求头，以及可能存在的请求体。',
+    timing: 'Request sent', emphasis: false
+  },
+  {
+    name: 'TTFB', label: '等待首字节', question: '请求发出后，多久开始收到回复？',
+    detail: 'TTFB 是 Time To First Byte（首字节时间）。这里特指 DevTools 的 Waiting 阶段：等待响应的第一个字节，其中包含网络往返和服务器准备响应的时间。因此，这一段很长不能直接证明数据库慢。收到第一个字节也不代表网页已经下载完。',
+    timing: 'Waiting (TTFB)', emphasis: true
+  },
+  {
+    name: 'Download', label: '下载响应', question: '继续接收响应的剩余内容。',
+    detail: '开始收到回复后，浏览器继续接收 HTML、接口数据或其他资源的响应内容。耗时与内容大小、带宽，以及浏览器接收和读取数据的情况有关。下载完成也不等于页面已经渲染完成。',
+    timing: 'Content Download', emphasis: false
+  }
+]
+---
+
+<details class='request-flow not-prose'>
+  <summary class='flow-header'>
+    <span class='eyebrow'>从域名到响应</span>
+    <span class='flow-title'>一次 HTTPS 请求，经历了什么？</span>
+    <span class='flow-intro'>新建 TCP 连接示例 · DNS / TLS / TTFB</span>
+    <span class='flow-toggle' aria-hidden='true'>+</span>
+  </summary>
+
+  <ol class='flow-steps'>
+    {steps.map((step, index) => (
+      <li class:list={['flow-step', { 'is-emphasized': step.emphasis }]}>
+        <span class='step-number' aria-hidden='true'>{String(index + 1).padStart(2, '0')}</span>
+        <details open={step.emphasis}>
+          <summary>
+            <span class='step-heading'><span class='step-name'>{step.name}</span><span class='step-label'>{step.label}</span></span>
+            <span class='step-question'>{step.question}</span>
+            <span class='step-toggle' aria-hidden='true'>+</span>
+          </summary>
+          <div class='step-body'>
+            <p>{step.detail}</p>
+            <p class='timing-label'><span>Network → Timing</span><strong>{step.timing}</strong></p>
+          </div>
+        </details>
+      </li>
+    ))}
+  </ol>
+
+  <aside class='initiator-note'>
+    <span class='eyebrow'>追踪请求来源</span>
+    <p class='note-title'>Initiator：是谁触发了这个请求？</p>
+    <p>它是请求的“发起者”，不属于上面的耗时阶段。浏览器解析 HTML 中的图片标签时，会发起图片请求，来源可能显示为 Parser；JavaScript 调用 fetch() 时，可以通过 Initiator 查找相关脚本与调用位置。</p>
+    <div class='dependency-example' aria-label='请求依赖示例'>
+      <span>请求用户信息</span><span class='dependency-arrow' aria-hidden='true'>→</span><span>拿到 user.id</span><span class='dependency-arrow' aria-hidden='true'>→</span><span>请求该用户的订单</span>
+    </div>
+    <p>第二个请求需要第一个请求的结果，所以必须等待。结合 Initiator 和代码，可以判断等待是否必要，以及独立请求能否并行。</p>
+  </aside>
+
+  <footer class='flow-footer'>
+    <p>范围：HTTP/1.1 或 HTTP/2 over TCP 的简化流程，省略排队、代理等阶段。连接复用、DNS 缓存和资源缓存可能省去部分步骤；HTTP/3 使用 QUIC，不能直接套用这里的 TCP 流程。</p>
+    <p>口径：页面加载指标中的 TTFB 通常还包含重定向、DNS 和连接建立等前置时间，不能直接等同于这里的 Waiting 阶段。DevTools 的 Initial connection 与 SSL 展示也可能存在包含关系，不应机械相加。</p>
+    <a href='https://developer.chrome.com/docs/devtools/network/reference/#timing-explanation'>查看 Chrome Network Timing 说明 ↗</a>
+  </footer>
+</details>
+
+<style>
+  .request-flow {
+    --flow-accent: hsl(var(--primary));
+    margin-block: 1.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.85rem;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    overflow: hidden;
+    font-size: 0.9rem;
+    line-height: 1.75;
+  }
+  .request-flow p { margin: 0; }
+  .request-flow > .flow-header { padding: 0.75rem 2.75rem 0.75rem 1rem; background: linear-gradient(135deg, hsl(var(--primary) / 0.07), transparent); }
+  .eyebrow { color: var(--flow-accent); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; }
+  .flow-header .eyebrow { display: block; font-size: 0.65rem; }
+  .flow-header .flow-title { display: block; margin-block: 0.1rem; font-size: 0.95rem; font-weight: 600; line-height: 1.5; }
+  .flow-header .flow-intro { display: block; font-size: 0.75rem; }
+  .flow-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--flow-accent); font-size: 1.15rem; }
+  .request-flow[open] > .flow-header .flow-toggle { transform: translateY(-50%) rotate(45deg); }
+  .flow-intro, .step-question, .flow-footer { color: hsl(var(--muted-foreground)); }
+  .flow-steps { list-style: none; margin: 0; padding: 0.75rem 1.5rem 1.5rem; }
+  .flow-step { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0.85rem; padding-bottom: 0.75rem; }
+  .flow-step:not(:last-child)::before { content: ''; position: absolute; left: calc(1rem - 0.5px); top: 2rem; bottom: 0; width: 1px; background: hsl(var(--border)); }
+  .flow-step:last-child { padding-bottom: 0; }
+  .step-number { position: relative; margin-top: 0.85rem; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: hsl(var(--muted-foreground)); font-size: 0.7rem; font-variant-numeric: tabular-nums; }
+  .flow-step details { border: 1px solid hsl(var(--border)); border-radius: 0.85rem; background: hsl(var(--muted) / 0.35); }
+  .is-emphasized details { border-color: hsl(var(--primary) / 0.35); background: hsl(var(--primary) / 0.045); }
+  .is-emphasized .step-number { background: var(--flow-accent); color: hsl(var(--background)); border-color: transparent; }
+  summary { position: relative; padding: 0.85rem 2.75rem 0.85rem 1rem; list-style: none; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary:focus-visible { outline: 2px solid var(--flow-accent); outline-offset: 3px; border-radius: 0.85rem; }
+  .step-heading { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 0.6rem; }
+  .step-name { font-size: 1rem; font-weight: 650; }
+  .step-label { font-size: 0.8rem; color: var(--flow-accent); }
+  .step-question { display: block; margin-top: 0.15rem; font-size: 0.85rem; }
+  .step-toggle { position: absolute; right: 1rem; top: 0.9rem; color: var(--flow-accent); font-size: 1.15rem; }
+  .flow-step details[open] .step-toggle { transform: rotate(45deg); }
+  .step-body { margin-inline: 1rem; padding-block: 0.75rem 1rem; border-top: 1px solid hsl(var(--border)); }
+  .step-body .timing-label { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.75rem; font-size: 0.75rem; overflow-wrap: anywhere; }
+  .timing-label span { color: hsl(var(--muted-foreground)); }
+  .timing-label strong { font-weight: 500; color: var(--flow-accent); }
+  .initiator-note { margin: 0 1.5rem 1.5rem; padding: 1rem 1.15rem; border-radius: 0.85rem; background: hsl(var(--muted)); }
+  .initiator-note .note-title { margin-block: 0.25rem 0.5rem; font-weight: 600; }
+  .dependency-example { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-block: 0.9rem; font-size: 0.75rem; }
+  .dependency-example span:not(.dependency-arrow) { padding: 0.2rem 0.5rem; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 0.4rem; }
+  .dependency-arrow { color: var(--flow-accent); }
+  .flow-footer { padding: 1rem 1.5rem; border-top: 1px solid hsl(var(--border)); font-size: 0.75rem; }
+  .flow-footer p + p { margin-top: 0.5rem; }
+  .flow-footer a { display: inline-block; margin-top: 0.65rem; color: var(--flow-accent); text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 480px) {
+    .request-flow > .flow-header { padding: 0.65rem 2.5rem 0.65rem 0.85rem; }
+    .flow-steps { padding: 0.5rem 0.85rem 1rem; }
+    .flow-step { gap: 0.5rem; grid-template-columns: 1.6rem minmax(0, 1fr); }
+    .step-number { width: 1.6rem; height: 1.6rem; }
+    .flow-step:not(:last-child)::before { left: calc(0.8rem - 0.5px); top: 1.8rem; }
+    summary { padding-left: 0.8rem; }
+    .step-body { margin-inline: 0.8rem; }
+    .initiator-note { margin: 0 1rem 1rem; padding: 0.85rem; }
+    .flow-footer { padding: 0.85rem 1rem; }
+  }
+</style>
