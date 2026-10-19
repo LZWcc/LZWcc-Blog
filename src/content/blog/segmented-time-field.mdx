@@ -1,0 +1,109 @@
+---
+title: 分段式时间字段：一个时间输入框改了三版
+description: 给倒计时加「手动输入时长」，从自由文本、微波炉式到分段输入，三种做法放在一起亲手试，并整理分段输入由哪些行为组成、怎么描述需求。
+publishDate: 2026-10-19
+tags:
+  - 交互设计
+  - 前端
+  - 表单
+language: zh
+draft: false
+---
+
+import TimeFieldDemo from '@/components/blog/TimeFieldDemo.astro'
+
+给新标签页扩展 niwa 的倒计时小组件加「手动输入时长」：原来只能点数字上下的小箭头调时间，太慢，想双击数字直接打。需求就这一句，结果来回改了三版。每一版都「能手动输入」，差别全在细节上。
+
+下面三个框都能直接操作，建议挨个试一下，比读描述直观。
+
+## 第一版：自由文本
+
+最直接的做法：双击后换成一个普通输入框，用户随便打，回车或点别处时再解析。`25` 是 25 分钟，`4:30` 是 4 分 30 秒，`1:30:00` 是 1 小时 30 分，认不出来就标红。
+
+<TimeFieldDemo mode='free' />
+
+问题很明显：**输入框什么都收**。字母能打进去，冒号能删掉，格式对不对要等提交那一刻才知道。用户得先猜规则（`25` 到底是分钟还是秒？），猜错了再改。
+
+## 第二版：微波炉式
+
+微波炉面板上只有 0–9，没有冒号键。按下的数字从最右边进来，之前的一位位往左推：
+
+```
+按 5   →  00:00:05
+按 3   →  00:00:53
+按 0   →  00:05:30
+```
+
+Google 搜「timer」出来的计时器、iOS 的计时器都是这种输入。
+
+<TimeFieldDemo mode='microwave' />
+
+它解决了「什么都收」：只认数字，冒号是显示出来的，删不掉。但又带来新问题：**想只改秒，也得把整串重打一遍**；而且 `25` 现在是 25 秒，25 分钟要打 `2500`，和直觉不一样。
+
+## 第三版：分段输入
+
+最后定下来的是**分段输入**（segmented input），用在时间上常叫**分段式时间字段**（segmented time field）。浏览器自带的 `<input type="time">`、macOS 里手动改时间的那一栏都是这样：
+
+<TimeFieldDemo mode='segmented' />
+
+- 双击哪一段就只改哪一段，整段选中，打字直接替换；
+- 打满两位**自动跳到右边一段**，所以从「分」开始连续打 `2530`，分和秒一起改好；
+- 冒号是固定的，完全不用碰；
+- **点别处就保存**，不需要确认按钮。
+
+## 分段输入由哪些行为组成
+
+分段输入不是一个功能，而是几个小行为组合起来的。描述需求、做验收时，最好逐条点名：
+
+| 行为       | 英文常见叫法        | 具体表现                                               |
+| ---------- | ------------------- | ------------------------------------------------------ |
+| 分段       | segment             | 时、分、秒各是一块，分隔符固定、不可编辑               |
+| 选中即替换 | select on focus     | 进入某一段时整段选中，打第一个数字就替换               |
+| 自动跳段   | auto-advance        | 打满两位跳到下一段                                     |
+| 提前跳段   | —                   | 第一位已经不可能有第二位时直接跳：分钟打 `7` 就是 `07` |
+| 失焦保存   | commit on blur      | 点到别处就保存；Esc 取消、恢复原值                     |
+| 键盘导航   | keyboard navigation | ← → 换段，↑ ↓ 加减，退格清零                           |
+| 只选当前段 | —                   | ⌘A / Ctrl+A 只重新选中这一段，不选中整页               |
+
+## 实现时的两个要点
+
+**1. 打一个数字时决定要不要跳段。** 每一段记一个 `fresh`：刚选中、还没打过数字。第一个数字直接替换；打第二个数字，或者第一个数字就已经大到不可能再有第二位，就跳到右边一段。
+
+```ts
+const UNIT_MAX = { h: 24, m: 59, s: 59 }
+
+function type(digit: number) {
+  const { unit, fresh } = editing
+  // 打满两位，或者第一位就不可能再有第二位（分钟打 7），就跳到右边一段
+  const full = !fresh || digit * 10 > UNIT_MAX[unit]
+  const next = units[units.indexOf(unit) + 1]
+  editing[unit] = Math.min(UNIT_MAX[unit], fresh ? digit : editing[unit] * 10 + digit)
+  editing.unit = full && next ? next : unit
+  editing.fresh = full
+}
+```
+
+**2. 「点到别处」要判断焦点是不是真的离开了整个字段。** 编辑时焦点放在外层容器上，开始编辑那一刻焦点会从某一段挪到外层；那一段的 `blur` 会冒泡上来，如果不加判断，刚进入编辑就被当成「点到别处」保存退出了。用 `relatedTarget`（焦点要去的那个元素）判断：
+
+```ts
+field.addEventListener('focusout', (e) => {
+  // 焦点还在字段里面（从某一段挪到外层），不算离开
+  if (editing && !field.contains(e.relatedTarget as Node | null)) commit()
+})
+```
+
+同理，编辑时点另一段要在 `mousedown` 里 `preventDefault()`，让焦点留在外层，只切换正在改的那一段。
+
+## 怎么描述这类需求
+
+只说「可以手动输入时间」最容易有歧义：上面三版都满足这句话。更清楚的写法是**参照物 + 关键行为**：
+
+> 把时长做成**分段输入**，像浏览器的 `<input type="time">`：双击某一段进入编辑，**整段选中**、打字替换；打满两位**自动跳到下一段**；冒号固定不可编辑；**点别处自动保存**，Esc 取消；← → 换段、↑ ↓ 加减。
+
+不知道术语时，参照物也能顶上：「像 macOS 改时间那样，点哪段改哪段，打满跳到下一段，点别处就保存」。
+
+## 参考
+
+- [MDN：`<input type="time">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/time)
+- [React Aria：TimeField](https://react-spectrum.adobe.com/react-aria/TimeField.html)（每一块叫 segment）
+- [MUI X：Time Field](https://mui.com/x/react-date-pickers/time-field/)

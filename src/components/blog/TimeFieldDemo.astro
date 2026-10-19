@@ -1,0 +1,476 @@
+---
+// 时间输入的三种做法，放在文章里亲手试：自由文本、微波炉式（从右往左填）、分段输入（像 <input type="time">）
+interface Props {
+  mode: 'free' | 'microwave' | 'segmented'
+}
+const { mode } = Astro.props
+const meta = {
+  free: {
+    title: '自由文本',
+    hint: '随便打，回车或点别处时才检查格式。试试打字母、删掉冒号。',
+    keys: ['25', '4:30', '1:30:00', 'Enter', 'Esc']
+  },
+  microwave: {
+    title: '微波炉式',
+    hint: '点一下框，只收数字，从右往左填：依次按 5、3、0 看看。',
+    keys: ['0–9', '⌫', '⌘A', 'Enter', 'Esc']
+  },
+  segmented: {
+    title: '分段输入',
+    hint: '双击「分」那一段，连续打 2、5、3、0，然后点别处。',
+    keys: ['双击', '0–9', '← →', '↑ ↓', '⌫', '⌘A', 'Enter', 'Esc']
+  }
+}[mode]
+---
+
+<figure class='tf not-prose' data-mode={mode}>
+  <figcaption class='tf-head'>
+    <span class='tf-eyebrow'>试一试</span>
+    <span class='tf-title'>{meta.title}</span>
+    <span class='tf-hint'>{meta.hint}</span>
+  </figcaption>
+  <div class='tf-stage'>
+    {
+      mode === 'free' && (
+        <input
+          class='tf-field tf-free'
+          value='25:00'
+          aria-label='倒计时时长'
+          spellcheck='false'
+          autocomplete='off'
+        />
+      )
+    }
+    {
+      mode === 'microwave' && (
+        <div
+          class='tf-field tf-micro'
+          tabindex='0'
+          role='textbox'
+          aria-label='倒计时时长，打数字从右往左填'
+        />
+      )
+    }
+    {
+      mode === 'segmented' && (
+        <div class='tf-field tf-seg' tabindex='-1' role='group' aria-label='倒计时时长'>
+          <span class='seg' data-unit='h' tabindex='0' role='spinbutton' aria-label='小时' />
+          <span class='colon'>:</span>
+          <span class='seg' data-unit='m' tabindex='0' role='spinbutton' aria-label='分钟' />
+          <span class='colon'>:</span>
+          <span class='seg' data-unit='s' tabindex='0' role='spinbutton' aria-label='秒' />
+        </div>
+      )
+    }
+  </div>
+  <div class='tf-status'>
+    <span>已保存：<strong class='tf-saved'>25 分</strong></span>
+    <span class='tf-log' aria-live='polite'></span>
+  </div>
+  <div class='tf-keys'>{meta.keys.map((k) => <kbd>{k}</kbd>)}</div>
+</figure>
+
+<style>
+  .tf {
+    margin-block: 1.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    overflow: hidden;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  .tf-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.6rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.07), transparent);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .tf-eyebrow {
+    color: hsl(var(--primary));
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .tf-title {
+    font-weight: 600;
+  }
+  .tf-hint {
+    flex-basis: 100%;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.85rem;
+  }
+  .tf-stage {
+    display: grid;
+    place-items: center;
+    padding: 1.75rem 1rem 1.25rem;
+  }
+  .tf-field {
+    font-size: 2.25rem;
+    font-weight: 300;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  /* 自由文本：就是一个普通输入框 */
+  .tf-free {
+    width: 9ch;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.6rem;
+    background: transparent;
+    color: inherit;
+    text-align: center;
+    outline: 0;
+  }
+  .tf-free:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  }
+  .tf-free.is-invalid {
+    border-color: #e5484d;
+    box-shadow: 0 0 0 3px rgb(229 72 77 / 0.2);
+  }
+  /* 微波炉式（数字是脚本生成的，样式要用 :global 才套得上）：补出来的 0 淡一些，右边一个闪的光标；全选时像选中的文字 */
+  .tf-micro {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.6rem;
+    cursor: text;
+    outline: 0;
+    user-select: none;
+  }
+  .tf-micro:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+  }
+  .tf-micro :global(.pad) {
+    opacity: 0.3;
+  }
+  .tf-micro :global(.colon),
+  .tf-seg .colon {
+    opacity: 0.45;
+  }
+  .tf-micro:focus::after {
+    content: '';
+    width: 2px;
+    height: 0.8em;
+    margin-left: 2px;
+    background: hsl(var(--primary));
+    animation: tf-caret 1s steps(1) infinite;
+  }
+  .tf-micro.is-selected:focus::after {
+    visibility: hidden;
+  }
+  .tf-micro.is-selected:focus > :global(span) {
+    background: hsl(var(--primary) / 0.25);
+  }
+  /* 分段：正在改的那一段像选中的文字 */
+  .tf-seg {
+    display: inline-flex;
+    align-items: center;
+    outline: 0;
+    user-select: none;
+  }
+  .seg {
+    padding: 0 0.08em;
+    border-radius: 0.35rem;
+    cursor: default;
+    outline: 0;
+  }
+  .seg:hover {
+    background: hsl(var(--muted));
+  }
+  .seg:focus-visible {
+    box-shadow: 0 0 0 2px hsl(var(--primary));
+  }
+  .tf-seg.is-editing .seg.is-active {
+    background: hsl(var(--primary) / 0.28);
+  }
+  @keyframes tf-caret {
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tf-micro:focus::after {
+      animation: none;
+    }
+  }
+  .tf-status {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    padding: 0 1rem 0.6rem;
+    font-size: 0.8rem;
+    color: hsl(var(--muted-foreground));
+  }
+  .tf-status strong {
+    color: hsl(var(--primary));
+    font-weight: 500;
+  }
+  .tf-keys {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.6rem 1rem 0.8rem;
+    border-top: 1px solid hsl(var(--border));
+  }
+  .tf-keys kbd {
+    padding: 0.05rem 0.4rem;
+    border: 1px solid hsl(var(--border));
+    border-bottom-width: 2px;
+    border-radius: 0.35rem;
+    background: hsl(var(--muted) / 0.5);
+    font-family: inherit;
+    font-size: 0.75rem;
+  }
+</style>
+
+<script>
+  type Unit = 'h' | 'm' | 's'
+  const MAX = 24 * 3600
+  const UNIT_MAX: Record<Unit, number> = { h: 24, m: 59, s: 59 }
+  const pad2 = (n: number) => String(n).padStart(2, '0')
+  const split = (t: number) => ({
+    h: Math.floor(t / 3600),
+    m: Math.floor((t % 3600) / 60),
+    s: t % 60
+  })
+  const human = (t: number) => {
+    const { h, m, s } = split(t)
+    return [h && `${h} 小时`, m && `${m} 分`, s && `${s} 秒`].filter(Boolean).join(' ') || '0 秒'
+  }
+  // 25:00、1:30:00
+  const short = (t: number) => {
+    const { h, m, s } = split(t)
+    return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`
+  }
+  const isSelectAll = (e: KeyboardEvent) => (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a'
+  const hasModifier = (e: KeyboardEvent) => e.metaKey || e.ctrlKey || e.altKey
+
+  function init() {
+    for (const root of document.querySelectorAll<HTMLElement>('.tf:not([data-ready])')) {
+      root.dataset.ready = ''
+      let saved = 25 * 60
+      const savedEl = root.querySelector('.tf-saved')!
+      const logEl = root.querySelector('.tf-log')!
+      const log = (msg: string) => (logEl.textContent = msg)
+      const save = (t: number) => {
+        saved = Math.min(MAX, t)
+        savedEl.textContent = human(saved)
+      }
+
+      if (root.dataset.mode === 'free') {
+        // 第一版：25 是 25 分钟，4:30 是 4 分 30 秒，1:30:00 是 1 小时 30 分；认不出来就标红
+        const input = root.querySelector<HTMLInputElement>('.tf-free')!
+        const parse = (text: string) => {
+          const parts = text.trim().replace(/：/g, ':').split(':')
+          if (parts.length > 3 || !parts.every((p) => /^\d{1,4}$/.test(p))) return null
+          const n = parts.map(Number)
+          if (n.length === 1) return n[0]! * 60 || null
+          const [h, m, s] = n.length === 3 ? n : [0, ...n]
+          if (s! > 59 || (n.length === 3 && m! > 59)) return null
+          return (h! * 60 + m!) * 60 + s! || null
+        }
+        const commit = (leaving: boolean) => {
+          const t = parse(input.value)
+          if (t === null) {
+            if (leaving) {
+              log(`「${input.value}」认不出来，已放弃`)
+              input.value = short(saved)
+              input.classList.remove('is-invalid')
+            } else {
+              log(`「${input.value}」认不出来`)
+              input.classList.add('is-invalid')
+            }
+            return
+          }
+          save(t)
+          input.value = short(saved)
+          input.classList.remove('is-invalid')
+          log(`识别为 ${human(saved)}`)
+        }
+        input.addEventListener('input', () => input.classList.remove('is-invalid'))
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') commit(false)
+          else if (e.key === 'Escape') {
+            input.value = short(saved)
+            input.classList.remove('is-invalid')
+            log('已取消')
+          }
+        })
+        input.addEventListener('blur', () => commit(true))
+      }
+
+      if (root.dataset.mode === 'microwave') {
+        // 第二版：只收数字，从右往左推进 时时:分分:秒秒
+        const box = root.querySelector<HTMLElement>('.tf-micro')!
+        let digits = ''
+        let selected = false
+        let cancelled = false
+        const render = () => {
+          const focused = document.activeElement === box
+          const shown = focused
+            ? digits.padStart(6, '0')
+            : short(saved).replace(/:/g, '').padStart(6, '0')
+          const padCount = focused ? 6 - digits.length : 0
+          box.classList.toggle('is-selected', selected)
+          box.replaceChildren(
+            ...[...`${shown.slice(0, 2)}:${shown.slice(2, 4)}:${shown.slice(4)}`].map(
+              (c, i, all) => {
+                const span = document.createElement('span')
+                span.textContent = c
+                const nth = all.slice(0, i + 1).filter((x) => x !== ':').length
+                span.className = `${c === ':' ? 'colon' : ''}${nth <= padCount ? ' pad' : ''}`
+                return span
+              }
+            )
+          )
+        }
+        box.addEventListener('focus', () => {
+          digits = short(saved).replace(/:/g, '').replace(/^0+/, '')
+          selected = true
+          cancelled = false
+          render()
+        })
+        box.addEventListener('keydown', (e) => {
+          if (isSelectAll(e)) selected = true
+          else if (hasModifier(e)) return
+          else if (/^\d$/.test(e.key)) {
+            digits = (selected ? e.key : digits + e.key).slice(0, 6)
+            selected = false
+            log(`数字从右边进来：${digits}`)
+          } else if (e.key === 'Backspace') {
+            digits = selected ? '' : digits.slice(0, -1)
+            selected = false
+          } else if (e.key === 'Enter') box.blur()
+          else if (e.key === 'Escape') {
+            cancelled = true
+            box.blur()
+          } else return
+          e.preventDefault()
+          render()
+        })
+        box.addEventListener('blur', () => {
+          const p = digits.padStart(6, '0')
+          const t = Number(p.slice(0, 2)) * 3600 + Number(p.slice(2, 4)) * 60 + Number(p.slice(4))
+          if (cancelled) log('已取消')
+          else if (t) {
+            save(t)
+            log(`${digits} → ${human(saved)}${t > MAX ? '（最长一天）' : ''}`)
+          }
+          render()
+        })
+        render()
+      }
+
+      if (root.dataset.mode === 'segmented') {
+        // 第三版：双击某一段只改这一段，打满两位自动跳到下一段，冒号不用管；点别处保存
+        const field = root.querySelector<HTMLElement>('.tf-seg')!
+        const segs = [...field.querySelectorAll<HTMLElement>('.seg')]
+        const units: Unit[] = ['h', 'm', 's']
+        const NAMES: Record<Unit, string> = { h: '小时', m: '分钟', s: '秒' }
+        let editing: { h: number; m: number; s: number; unit: Unit; fresh: boolean } | null = null
+        const render = () => {
+          const v = editing ?? split(saved)
+          field.classList.toggle('is-editing', !!editing)
+          for (const seg of segs) {
+            const unit = seg.dataset.unit as Unit
+            seg.textContent = pad2(v[unit])
+            seg.classList.toggle('is-active', editing?.unit === unit)
+          }
+        }
+        const start = (unit: Unit) => {
+          editing = { ...split(saved), unit, fresh: true }
+          field.focus()
+          log(`选中${NAMES[unit]}，打数字替换`)
+          render()
+        }
+        const commit = () => {
+          const { h, m, s } = editing!
+          const t = (h * 60 + m) * 60 + s
+          editing = null
+          if (t) {
+            save(t)
+            log(`保存为 ${human(saved)}`)
+          } else log('全是 0，当没改')
+          render()
+        }
+        const type = (digit: number) => {
+          const e = editing!
+          const { unit, fresh } = e
+          // 打满两位，或者第一位就不可能再有第二位（分钟打 7），就跳到右边一段
+          const full = !fresh || digit * 10 > UNIT_MAX[unit]
+          const next = units[units.indexOf(unit) + 1]
+          e[unit] = Math.min(UNIT_MAX[unit], fresh ? digit : e[unit] * 10 + digit)
+          e.unit = full && next ? next : unit
+          e.fresh = full
+          log(
+            full && next
+              ? `${NAMES[unit]} = ${pad2(e[unit])}，跳到${NAMES[next]}`
+              : `${NAMES[unit]} = ${pad2(e[unit])}`
+          )
+        }
+        field.addEventListener('dblclick', (e) => {
+          const seg = (e.target as Element).closest<HTMLElement>('.seg')
+          if (seg && !editing) start(seg.dataset.unit as Unit)
+        })
+        // 改着的时候点另一段：换过去，焦点留在外层（不然算点到别处）
+        field.addEventListener('mousedown', (e) => {
+          const seg = (e.target as Element).closest<HTMLElement>('.seg')
+          if (!editing || !seg) return
+          e.preventDefault()
+          editing.unit = seg.dataset.unit as Unit
+          editing.fresh = true
+          render()
+        })
+        field.addEventListener('keydown', (e) => {
+          if (!editing) {
+            const seg = (e.target as Element).closest<HTMLElement>('.seg')
+            if (e.key === 'Enter' && seg) {
+              e.preventDefault()
+              start(seg.dataset.unit as Unit)
+            }
+            return
+          }
+          const { unit } = editing
+          const at = units.indexOf(unit)
+          if (isSelectAll(e)) editing.fresh = true
+          else if (hasModifier(e)) return
+          else if (/^\d$/.test(e.key)) type(Number(e.key))
+          else if (e.key === 'Backspace') {
+            editing[unit] = 0
+            editing.fresh = true
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            editing.unit = units[Math.min(2, Math.max(0, at + (e.key === 'ArrowRight' ? 1 : -1)))]!
+            editing.fresh = true
+          } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            const span = UNIT_MAX[unit] + 1
+            editing[unit] = (editing[unit] + (e.key === 'ArrowUp' ? 1 : -1) + span) % span
+            editing.fresh = true
+          } else if (e.key === 'Enter') return void (e.preventDefault(), commit())
+          else if (e.key === 'Escape') {
+            editing = null
+            log('已取消')
+          } else return
+          e.preventDefault()
+          render()
+        })
+        // 焦点离开整个字段才算点到别处（开始改时焦点从某一段挪到外层，那一段的 blur 也会冒泡上来）
+        field.addEventListener('focusout', (e) => {
+          if (editing && !field.contains(e.relatedTarget as Node | null)) commit()
+        })
+        render()
+      }
+    }
+  }
+  // 同 PdfViewer：直接初始化一次，开了页面切换动画时每次切过来再初始化（data-ready 防止重复）
+  init()
+  document.addEventListener('astro:page-load', init)
+</script>
