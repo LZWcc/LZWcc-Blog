@@ -1,7 +1,8 @@
 ---
 title: Claude Code 写计划、Codex 执行：跨机器自动派活与验收
 description: Claude Code 跑在服务器上，代码和 Codex 在 Mac 上。用 codex exec 和 resume 让 Claude Code 自动把计划交给 Codex、验收、反馈、循环；文末附一段可以直接粘贴给 Claude Code 的项目级配置提示词。
-publishDate: 2026-10-19
+publishDate: '2026-10-19T22:40:01+08:00'
+updatedDate: '2026-10-20T13:22:28+08:00'
 tags:
   - Claude
   - Codex

@@ -1,7 +1,7 @@
 ---
 title: Codex CLI 任务结束后自动推送 Telegram 通知（零额外 Token）
 description: 在 Mac 上通过 Codex CLI 的 notify 配置调用 Shell 脚本，将回合结束通知发送到 Telegram，并记录代理排查、已有通知回调兼容和验证边界。
-publishDate: 2026-10-17
+publishDate: '2026-10-17T11:16:05+08:00'
 tags:
   - Codex
   - AI

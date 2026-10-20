@@ -1,12 +1,12 @@
 ---
 title: 让 AI 开工前，先把需求说清楚
 description: 从开发前先写 PRD 的建议出发，聊聊我更倾向的协作方式：用语音表达需求，让 AI 主动澄清和质疑，再一起确定方向，给实现留下探索空间。
-publishDate: 2026-10-20
+publishDate: '2026-10-20T13:12:11+08:00'
 tags:
   - AI
   - Claude
   - 提示词
-draft: true
+draft: false
 comment: false
 ---
 
