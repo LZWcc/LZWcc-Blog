@@ -1,8 +1,8 @@
 ---
-title: 远程用 Claude Code：断线、滚动、贴图和多 agent
+title: 远程用 Claude Code：断线、滚动和多 agent
 description: 在 245 毫秒延迟的 VPS 上跑 Claude Code：为什么 herdr、aoe 滚动卡，怎么用 iTerm2 + tmux -CC 做到本地滚动，自己写的多 agent 侧栏 ag，以及完整的 iTerm2 设置清单。
 publishDate: 2026-10-20 22:10:38
-updatedDate: 2026-10-21 17:27:09
+updatedDate: 2026-10-21 17:46:33
 tags:
   - Claude
   - tmux
@@ -12,23 +12,12 @@ draft: false
 comment: false
 ---
 
-我平时在 Mac 上 `ssh lxc` 连到一台 VPS，在上面跑 Claude Code。用久了有三个地方一直不顺手：
+我平时在 Mac 上 `ssh lxc` 连到一台 VPS，在上面跑 Claude Code。用久了有两个地方一直不顺手：
 
 1. **断线**：Wi-Fi 一抖，SSH 就断了，只能重新连上再 `claude -c`。
 2. **滚动**：用 tmux 解决了断线，但每次往上翻都要先按 `Ctrl+b [`，再把光标挪到顶上才能滚，滚回来又要把光标挪到底。我不用 Claude Code 的全屏模式，因为那样复制出来的字符留在终端里，到不了 Mac 的剪贴板。
-3. **贴图**：本地跑 Claude 可以直接 `Option+V`、连续贴好几张图。服务器上不行，我只能用一个 `/clip` skill 去读 Mac 剪贴板，一次一张。
 
-试过 herdr：不用前缀就能滚，多 agent 管理也很方便，但滚动非常卡，像是一行一行在画。于是我想干脆让 AI 帮我用 Rust 写一个类似的工具。下面是和 Claude 一起折腾两天的结果。
-
-## 需求
-
-| # | 需求 | 优先级 |
-|---|---|---|
-| R1 | **会话常驻**：断线（Wi-Fi 抖动、合盖、长时间离开）后服务器上的 Claude 继续跑，重连后回到原会话 | 必须 |
-| R2 | **原生滚动和复制**：不按前缀、不挪光标，流畅度等于本地终端；选中内容能复制到 Mac | 必须 |
-| R3 | **原生贴图**：在服务器的 Claude Code 里按 `Ctrl+V` 贴 Mac 剪贴板里的图，可以连续贴多张 | 必须 |
-| R4 | **贴文件**：Finder 里复制的一个或多个文件，粘贴后 Claude 能读到 | 想要 |
-| R5 | **多 agent**：同时开几个 Claude，一眼看出哪个在等我 | 想要 |
+后来又想同时开几个 Claude、一眼看出哪个在等我。试过 herdr：不用前缀就能滚，多 agent 管理也很方便，但滚动非常卡，像是一行一行在画。于是我想干脆让 AI 帮我用 Rust 写一个类似的工具。下面是和 Claude 一起折腾的结果。
 
 ## 为什么不自己写一个 tmux
 
@@ -47,7 +36,7 @@ tmux、herdr、zellij 都是"终端里的终端"：每个窗格的画面和滚�
 
 `tmux -CC` 是 tmux 的控制模式：tmux 不再画整屏，而是把每个窗格的原始输出原样转给 iTerm2，由 iTerm2 自己保存滚动历史。历史在 Mac 上，滚动、选中、复制就都是原生的，不经过网络。herdr、zellij 没有这样的协议，也没有终端配合它们，所以再成熟也做不到。
 
-结论：**不自己写多路复用器。服务器用 tmux 保持会话，滚动交给 iTerm2；真正要开发的是剪贴板桥（R3、R4）。**
+结论：**不自己写多路复用器。服务器用 tmux 保持会话，滚动交给 iTerm2。**
 
 ## iTerm2 + tmux -CC
 
@@ -147,12 +136,6 @@ alias ag="ssh -o RemoteCommand=none -t lxc 'cd /home/lzwcc/workspace && exec ~/.
 - 不要用 iTerm2 分屏上的 ✕ 关 agent，那会直接 kill 掉 pane，用 `x`。
 - 停放的 agent 是**还在运行**的 Claude 进程，每个约 300MB。这台 VPS 只有 4G 内存，同时开七八个就到头了，用完要关。关掉不会丢对话，可以从历史里接回来。
 - 多个终端执行 `ag`，连的是同一个工作台：在一边切换，另一边也跟着换。
-
-## 接下来
-
-1. **剪贴板桥（R3、R4）**：Claude Code 在 Linux 上按 `Ctrl+V` 时会调用 `xclip` 或 `wl-paste` 读剪贴板。打算在 VPS 上放一个同名的假命令，被调用时通过 `ssh lzwcc` 去 Mac 取图，这样原生 `Ctrl+V` 就能用。先要查清 Claude Code 具体调用哪个命令、带什么参数。
-2. **断线恢复**：还没正式测过，跑一个长任务时直接关掉 iTerm2，再连回去看任务和历史还在不在。
-3. **`ag` 开源**：现有项目都是一个 agent 一个窗口，为 `tmux -CC` + 高延迟设计的单标签页模型还没人做。先自己用几天，稳定了再去掉写死的路径、写安装脚本和 README。
 
 ## 附：iTerm2 设置清单
 
