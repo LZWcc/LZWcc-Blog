@@ -9,7 +9,7 @@ tags:
   - Docker
   - 复盘
 language: zh
-draft: true
+draft: false
 ---
 
 这篇记录一次线上 Go 服务的 OOM 排查（Go + Gin + GORM + PostgreSQL，Docker Compose 部署）。

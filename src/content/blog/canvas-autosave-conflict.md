@@ -8,7 +8,7 @@ tags:
   - 同步
   - 复盘
 language: zh
-draft: true
+draft: false
 ---
 
 这篇是一次"画布存不上"问题的复盘，前后修了一周。

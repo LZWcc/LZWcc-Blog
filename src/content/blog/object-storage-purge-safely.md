@@ -9,7 +9,7 @@ tags:
   - Claude Code
   - 复盘
 language: zh
-draft: true
+draft: false
 ---
 
 这篇记录一次**批量删除用户文件**的过程（Go 后端，文件放在对象存储）。
