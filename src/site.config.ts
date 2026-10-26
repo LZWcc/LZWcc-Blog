@@ -49,14 +49,7 @@ export const theme: ThemeUserConfig = {
   npmCDN: 'https://cdn.jsdelivr.net/npm',
 
   // Still in test // 仍在测试中
-  head: [
-    /* Telegram channel */
-    // {
-    //   tag: 'meta',
-    //   attrs: { name: 'telegram:channel', content: '@cworld0_cn' },
-    //   content: ''
-    // }
-  ],
+  head: [],
   customCss: [],
 
   /** Configure the header of your site.

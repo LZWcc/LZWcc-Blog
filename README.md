@@ -56,7 +56,7 @@ comment: false
 ## 配置与部署
 
 - `astro.config.ts`：站点 URL、构建与 Markdown 配置。
-- `src/site.config.ts`：站点信息、导航、友链信息、评论和统计配置。
+- `src/site.config.ts`：站点信息、导航、评论和统计配置。
 - `src/content.config.ts`：文章元数据校验规则。
 - `public/`：直接复制到构建产物的静态资源。
 - `.github/workflows/deploy.yml`：GitHub Actions 构建和 rsync 部署流程。
@@ -85,6 +85,6 @@ GitHub Actions 使用以下仓库配置：
 
 ## 主题与许可
 
-主题使用说明见 [Astro Pure 文档](https://astro-pure.js.org/docs)。上游主题的徽章、演示截图和 Lighthouse 分数不代表本站的部署或性能结果。
+主题使用说明见 [Astro Pure 文档](https://astro-pure.js.org/docs)。
 
 博客文本内容以 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 协议发布；主题代码的 Apache 2.0 许可见 [LICENSE](./LICENSE)。
