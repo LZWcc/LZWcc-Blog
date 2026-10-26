@@ -59,7 +59,7 @@ export const theme: ThemeUserConfig = {
     menu: [
       { title: 'Blog', link: '/blog' },
       { title: 'Projects', link: '/projects' },
-      // { title: 'Links', link: '/links' },
+      { title: 'Links', link: '/links' },
       { title: 'About', link: '/about' }
     ]
   },
@@ -130,19 +130,13 @@ export const integ: IntegrationUserConfig = {
   // https://astro-pure.js.org/docs/integrations/links
   links: {
     // Friend logbook // 朋友日志
-    logbook: [
-      { date: '2025-03-16', content: 'Is there a leakage?' },
-      { date: '2025-03-16', content: 'A leakage of what?' },
-      { date: '2025-03-16', content: 'I have a full seat of water, like, full of water!' },
-      { date: '2025-03-16', content: 'Must be the water.' },
-      { date: '2025-03-16', content: "Let's add that to the words of wisdom." }
-    ],
+    logbook: [],
     // Yourself link info // 个人链接信息
     applyTip: [
       { name: 'Name', val: theme.title },
       { name: 'Desc', val: theme.description || 'Null' },
       { name: 'Link', val: 'https://lzwcc.xyz/' },
-      { name: 'Avatar', val: 'https://lzwcc.xyz/favicon/favicon.ico' }
+      { name: 'Avatar', val: 'https://lzwcc.xyz/avatar.png' }
     ],
     // Cache avatars in `public/avatars/` to improve user experience.
     // 在 `public/avatars/` 缓存头像以提升用户体验。
