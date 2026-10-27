@@ -2,7 +2,7 @@
 title: 和 Claude Code 一起重做个人主页：被我否掉的二十几版
 description: 想要一个让招聘方点进来眼前一亮的作品站。和 Claude Code 来回改了二十几版：首页最后回到档案卡墙，作品列表照着我找的参考站才定下来。记录参考、我说过的"不"、做法和踩过的坑。
 publishDate: 2026-10-25 01:36:26
-updatedDate: 2026-10-27 21:10:02
+updatedDate: 2026-10-27 22:38:31
 tags:
   - Claude Code
   - Nuxt
@@ -188,6 +188,6 @@ Claude Code 跑在一台远程机器上，代码在我的 Mac 上，它没有浏
 | `app/components/BentoCard.vue` | 档案卡外壳，`draftsBare` 时只渲染正文 |
 | `app/plugins/reveal.ts` | `v-reveal` 浮入动效 |
 | `app/assets/css/home.css` | 深浅两套颜色变量 |
-| `app/pages/drafts/` | 被否掉的各版：三栏信息流 `feed.vue`（标签 `homepage-feed-v1`），作品列表 `works-*.vue` |
+| 标签 `drafts-archive` | 被否掉的各版，原来在 `app/pages/drafts/`：三栏信息流 `feed.vue`（另有标签 `homepage-feed-v1`），作品列表 `works-*.vue` |
 | `scripts/sync-profile-data.py` | 同步数据，写到 `app/data/*.json` |
 | `scripts/deploy.sh` | 导出已提交的代码、同步数据、构建、上传到服务器 |

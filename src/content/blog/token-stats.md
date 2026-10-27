@@ -2,7 +2,7 @@
 title: 汇总多台机器的 Claude Code 与 Codex 用量，生成 GitHub 主页卡片
 description: 用量分散在笔记本和几台服务器上，Claude Code 30 天后还会清理日志。写了 token-stats：一台机器经 ssh 汇总、逐请求入库，生成 SVG 卡片推到自己的公开仓库，主页 README 直接引用。
 publishDate: 2026-10-24 18:17:53
-updatedDate: 2026-10-27 21:50:02
+updatedDate: 2026-10-27 22:26:52
 tags:
   - Claude Code
   - Codex
@@ -16,7 +16,7 @@ comment: false
 
 现成的工具不太合适。[ccusage](https://github.com/ccusage/ccusage) 每次运行时读本机日志出报表，只看一台机器，日志被清理后对应的统计也就没了。[tokscale](https://github.com/junhoyeo/tokscale) 支持的工具多，也有贡献图，但公开主页和排行榜要把用量提交到它的服务。我想要的是：多台机器汇总、永久保存、数据只放在自己的仓库里。
 
-于是写了 [token-stats](https://github.com/LZWcc/token-stats)。下面是我自己的数据，每次同步后自动更新：
+于是写了 [token-stats](https://github.com/LZWcc/token-stats)。项目介绍放在[我的作品站](https://lab.lzwcc.xyz/project/token-stats)，这篇讲它怎么做的、怎么用。下面是我自己的数据，每次同步后自动更新：
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/LZWcc/token-stats-data/main/token-stats/cards/overview-dark.svg">
