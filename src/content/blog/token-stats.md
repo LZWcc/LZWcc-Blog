@@ -2,6 +2,7 @@
 title: 汇总多台机器的 Claude Code 与 Codex 用量，生成 GitHub 主页卡片
 description: 用量分散在笔记本和几台服务器上，Claude Code 30 天后还会清理日志。写了 token-stats：一台机器经 ssh 汇总、逐请求入库，生成 SVG 卡片推到自己的公开仓库，主页 README 直接引用。
 publishDate: 2026-10-24 18:17:53
+updatedDate: 2026-10-27 21:50:02
 tags:
   - Claude Code
   - Codex
@@ -31,6 +32,7 @@ comment: false
 - **只用 Python 标准库**。macOS 自带的 `/usr/bin/python3`（3.9）就能运行，服务器上也只需要 Python ≥ 3.9。JSON 解析、SQLite、时区换算、文件锁、生成 SVG 卡片都用标准库完成，不依赖 Node，也不用 pip 装任何东西。
 - **为什么不用 bash 或其他语言**。服务器零安装的前提是：服务器上本来就有解释器，并且能从 stdin 直接运行源码。Linux 发行版基本都自带 `python3`，`python3 -` 正好满足。纯 bash 解析嵌套的 JSON 要靠 `jq`，服务器上不一定有；bash 没有浮点运算，算不了卡片里的坐标和弧线；Windows 上也没有 bash。Node 在服务器上通常没装；Go、Rust 要按平台各编一份，还得先把程序拷到服务器上，就不再是零写入了。
 - **卡片放在自己的公开仓库**。数据在自己的机器上，在线服务和 GitHub Actions 都读不到，只能本机生成，再推到公开仓库供 README 引用。程序只管理仓库里的 `token-stats/` 子目录；自动提交的作者是 `token-stats <token-stats@localhost>`，不关联任何 GitHub 账号，所以每天的提交不会让贡献图变绿。
+- **汇总数据和卡片一起发布**（v0.1.3 起）。发布仓库里除了每天一个文件的日数据，还有 `token-stats/data/summary.json`：总量、近 7 天、近 30 天、活跃天数、连续使用和最长纪录、各模型和各工具的合计（从多到少，不截断），以及从第一天到今天的逐日总量（没用的日子记 0）。数字和卡片出自同一段代码、同一个口径，别处要显示用量时直接读它，不用自己汇总日数据，也不会和卡片对不上。
 - **安装脚本只装发布过的版本**。从最新 Release 下载源码包，生成的启动脚本里写死 Python 的绝对路径。macOS 上优先用 `/usr/bin/python3`：Homebrew 的 Python 路径带版本号，升级后就失效了。
 - **三个平台的 CI**。每次推送都在 macOS、Linux、Windows 上，用 Python 3.9 和最新版跑单元测试（日志全是手写的合成数据），再用当前提交打出的源码包跑一遍安装、试用和卸载。我没有 Windows 机器，Windows 上只有 CI 测过，没在真实机器上用过。
 
@@ -54,6 +56,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/LZW
 2. `token-stats init`：向导，依次问本机名、要加入的服务器（从 `~/.ssh/config` 里选，服务器需要能免密登录）、要自动合并的其他 usage.db、时区、卡片口径、发布仓库，检测到 CC Switch 时问是否导入，然后做首次采集，最后问是否装定时任务。发布仓库不存在且装了 gh 时，可以直接新建。
 3. 从 `init` 最后打印的 README 片段里挑想要的卡片，贴进主页 README。每张卡片一个 `<picture>`，按访客的主题切换亮色和暗色。
 4. 之后运行 `token-stats sync` 更新，`token-stats doctor` 检查各机器的连接和发布状态。
+
+要在个人网站上显示用量，读发布仓库里的 `token-stats/data/summary.json`。我的作品站 [lab.lzwcc.xyz](https://lab.lzwcc.xyz) 首页的「AI 用量」卡就是这样做的：发布网站时浅克隆数据仓库取出这个文件，写成静态 JSON 一起构建。国内经常连不上 `raw.githubusercontent.com`，所以不在访客的浏览器里请求。只列前 5 个模型、其余合并成"其他"这类展示上的取舍放在网站这边。网站原来是自己汇总日数据的，换成读它之后，结果逐项一致。
 
 唯一的硬约束：每台机器至少每 30 天被 `sync` 一次，否则日志会在入库前被清理。超过 7 天没采集时，`sync` 和 `doctor` 会提醒。`init` 里可以装每天 12:00 运行的定时任务（launchd / systemd / crontab / 任务计划程序）；我没装，手动运行。
 
@@ -82,4 +86,4 @@ powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/LZW
 | 程序 | `~/.local/share/token-stats/app/` | `%LOCALAPPDATA%\token-stats\app\` |
 | 启动脚本 | `~/.local/bin/token-stats` | `%LOCALAPPDATA%\token-stats\bin\token-stats.cmd` |
 | 配置 | `~/.config/token-stats/config.json` | `%APPDATA%\token-stats\config.json` |
-| 数据 | `~/.local/share/token-stats/`：`usage.db`（逐请求账本）、`daily/`（日数据）、`cards/`（卡片和预览页）、`backups/`（每日备份，保留 7 份）、`publish/`（发布仓库的本地克隆） | `%LOCALAPPDATA%\token-stats\` 下同名 |
+| 数据 | `~/.local/share/token-stats/`：`usage.db`（逐请求账本）、`daily/`（日数据）、`cards/`（卡片、预览页和汇总数据 `summary.json`）、`backups/`（每日备份，保留 7 份）、`publish/`（发布仓库的本地克隆） | `%LOCALAPPDATA%\token-stats\` 下同名 |
