@@ -22,8 +22,45 @@ const headings = [
   </p>
 
   <h2 id='programs'>Programs</h2>
+  {/* 每个项目的第一个链接是作品站（lab.lzwcc.xyz）上的项目页，详细介绍和截图在那边 */}
   <ProjectSection
     projects={[
+      {
+        name: 'ui-motion-lab',
+        description: '作品站：网上看到的界面和动效重写成可交互的演示，附提示词。',
+        links: [{ type: 'site', href: 'https://lab.lzwcc.xyz/' }]
+      },
+      {
+        name: 'MaintPilot',
+        image: 'maintpilot.webp',
+        description: '设备检修 AI 诊断系统。两人合作，我负责前端和部署。',
+        links: [
+          { type: 'doc', href: 'https://lab.lzwcc.xyz/project/maintpilot' },
+          { type: 'site', href: 'https://maintpilot.lzwcc.xyz/welcome' }
+        ]
+      },
+      {
+        name: 'Niwa',
+        image: 'niwa.webp',
+        description: '浏览器新标签页扩展，已上架 Edge 扩展商店。',
+        links: [
+          { type: 'doc', href: 'https://lab.lzwcc.xyz/project/niwa' },
+          {
+            type: 'site',
+            href: 'https://microsoftedge.microsoft.com/addons/detail/niwa/aonnmkpdcdkcfhcionbpmigmfbjcmnec'
+          },
+          { type: 'github', href: 'https://github.com/LZWcc/Niwa' }
+        ]
+      },
+      {
+        name: 'token-stats',
+        image: 'token-stats.webp',
+        description: '汇总几台机器的 AI 编程 token 用量，画成主页卡片。',
+        links: [
+          { type: 'doc', href: 'https://lab.lzwcc.xyz/project/token-stats' },
+          { type: 'github', href: 'https://github.com/LZWcc/token-stats' }
+        ]
+      },
       {
         name: 'CareerskyHelper',
         description: '北森生涯教育平台(章节视频自动切换 + 防止切换界面自动暂停)',
