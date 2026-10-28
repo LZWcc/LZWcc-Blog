@@ -15,8 +15,8 @@ const headings = [
 
 <PageLayout title='About' {headings} view comment>
   <p>
-    👋 你好，我是 LZWcc，目前是软件工程专业的大二学生。正在努力成长为一名具备实际开发能力的
-    全栈工程师。在学习的路上，我不断挑战自己、精进技能，也热衷于探索高效的开发工具链
+    👋 你好，我是 LZWcc，湖南工程学院软件工程专业大三的学生，正在找前端开发的工作。平时用 Vue、React
+    和 TypeScript 写界面，也会自己写一些小工具。做出来的东西放在<a href='https://lab.lzwcc.xyz'>作品站</a>，开发过程和学习笔记写在这个博客里。
   </p>
   <p>
     <Spoiler>长期处于“会用 AI 但不确定自己会什么”的薛定谔状态。
@@ -44,7 +44,7 @@ const headings = [
 
   {/* tools */}
   <h2 id='tools'>Tools</h2>
-  <p>Current support tools as follow:</p>
+  <p>我常用的工具：</p>
   <!-- <ToolSection
     class='mb-5'
     title='Design'
@@ -79,6 +79,12 @@ const headings = [
     class='mb-5'
     title='Productivity'
     tools={[
+      {
+        name: 'Microsoft Edge',
+        description: 'Browser',
+        href: 'https://www.microsoft.com/edge',
+        icon: import('@/assets/tools/edge.svg?raw')
+      },
       {
         name: 'Chrome',
         description: 'Browser',
@@ -146,6 +152,12 @@ const headings = [
         description: 'AI Coding Assistant',
         href: 'https://openai.com/index/introducing-codex/',
         icon: import('@/assets/tools/chatgpt.svg?raw')
+      },
+      {
+        name: 'iTerm2 + tmux',
+        description: 'Terminal',
+        href: 'https://iterm2.com/',
+        icon: import('@/assets/tools/terminal.svg?raw')
       },
       // {
       //   name: 'Neovim',
