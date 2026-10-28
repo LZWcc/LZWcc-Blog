@@ -1,632 +1,204 @@
 ---
-// 首页：三栏。左边是个人资料，中间是文章（最上面置顶一段自我介绍，可以按类别筛选），
-// 右边是标签、归档、作品站最新的作品、技能和教育。布局照 ui-motion-lab 的信息流版
-// （标签 homepage-feed-v1 的 app/pages/drafts/feed.vue），颜色用博客主题自己的变量，和其他页面一致。
 import { Image } from 'astro:assets'
-import { render } from 'astro:content'
 
-import { getBlogCollection, getUniqueTagsWithCount, sortMDByDate } from 'astro-pure/server'
-import { FormattedDate, Icon } from 'astro-pure/user'
+import { Quote } from 'astro-pure/advanced'
+import { PostPreview } from 'astro-pure/components/pages'
+import { getBlogCollection, sortMDByDate } from 'astro-pure/server'
+import { Button, Card, Icon, Label } from 'astro-pure/user'
 import PageLayout from '@/layouts/BaseLayout.astro'
-import { authorshipLabel } from '@/utils/authorship'
-import { getLabWorks, LAB } from '@/utils/lab-works'
+import ProjectCard from '@/components/home/ProjectCard.astro'
+import Section from '@/components/home/Section.astro'
+import SkillLayout from '@/components/home/SkillLayout.astro'
 import config from '@/site-config'
 
-const posts = sortMDByDate(await getBlogCollection())
-const tags = getUniqueTagsWithCount(posts)
+const languages = ['Html', 'JavaScript', 'CSS', 'Python', 'C++', 'Assembly', 'Java']
+const frontend = ['TypeScript', 'Vite', 'Vue', 'Astro']
+const backend = ['Nginx', 'Node.js']
 
-// 中间一栏的筛选。一篇文章可以同时属于几类，「全部」之外按下面的规则归类
-const AI_TAGS = ['claude', 'claude code', 'codex', 'ai', 'skill']
-const STUDY_BEFORE = new Date('2026-06-01')
-type Tab = 'all' | 'ai' | 'eng' | 'study'
-function categories(post: (typeof posts)[number]): Tab[] {
-  if (post.data.publishDate < STUDY_BEFORE) return ['study']
-  return post.data.tags.some((t) => AI_TAGS.includes(t)) ? ['ai'] : ['eng']
-}
-const items = await Promise.all(
-  posts.map(async (post) => ({
-    post,
-    cats: categories(post),
-    minutes: (await render(post)).remarkPluginFrontmatter.minutesRead as string,
-    by: authorshipLabel(post.data.authorship)
-  }))
-)
-const TABS: { key: Tab; label: string }[] = [
-  { key: 'all', label: '全部' },
-  { key: 'ai', label: 'AI 协作' },
-  { key: 'eng', label: '工程实践' },
-  { key: 'study', label: '学习笔记' }
-]
-const count = (key: Tab) =>
-  key === 'all' ? items.length : items.filter((i) => i.cats.includes(key)).length
+const MAX_POSTS = 10
+const allPosts = await getBlogCollection()
+const allPostsByDate = sortMDByDate(allPosts).slice(0, MAX_POSTS)
 
-// 右栏：按年份的归档
-const years = [
-  ...posts.reduce(
-    (m, p) =>
-      m.set(p.data.publishDate.getFullYear(), (m.get(p.data.publishDate.getFullYear()) ?? 0) + 1),
-    new Map<number, number>()
-  )
-]
-const labWorks = (await getLabWorks()).slice(0, 4)
-const SKILLS = [
-  ['语言', 'HTML、JavaScript、CSS、Python、C++、Java、汇编'],
-  ['前端', 'TypeScript、Vite、Vue、Astro'],
-  ['后端', 'Nginx、Node.js']
-]
-
-const logo = import.meta.glob<{ default: ImageMetadata }>(
+const imagePath = config.logo.src
+const images = import.meta.glob<{ default: ImageMetadata }>(
   '/src/assets/*.{jpeg,jpg,png,gif,avif,webp}'
-)[config.logo.src]
-if (!logo) throw new Error(`"${config.logo.src}" 不在 src/assets/ 里`)
+)
+if (!images[imagePath])
+  throw new Error(
+    `"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif,avif,webp}"`
+  )
 ---
 
 <PageLayout meta={{ title: 'Home' }} highlightColor='#659EB9'>
-  <div class='home'>
-    <!-- ── 左：个人资料 ── -->
-    <aside class='profile'>
+  <main class='flex w-full flex-col items-center'>
+    <section class='animate mb-10 flex flex-col items-center gap-y-7' id='content-header'>
       <Image
-        src={logo()}
-        alt={config.logo.alt || 'LZWcc'}
-        class='face'
+        src={images[imagePath]()}
+        alt={config.logo.alt || 'Profile'}
+        class='h-28 w-auto rounded-full border p-1'
         loading='eager'
         fetchpriority='high'
       />
-      <h1>LZWcc</h1>
-      <p class='handle'>软件工程 · 湖南工程学院</p>
-      <p class='status'><i></i>正在找前端开发的工作</p>
-      <p class='bio'>
-        你好，我叫 LZWcc，是一个软件工程专业的本科生。这里记开发过程和学习笔记，做出来的东西放在<a
-          href={LAB}>作品站</a
-        >。
-      </p>
-      <nav class='links'>
-        <a href='https://github.com/LZWcc' target='_blank' rel='noopener'
-          ><Icon name='github' />GitHub</a
-        >
-        <a href={LAB}><Icon name='link' />作品站</a>
-        <a href='/rss.xml'><Icon name='rss' />RSS</a>
-      </nav>
-      <dl class='numbers'>
-        <div><dd>{posts.length}</dd><dt>文章</dt></div>
-        <div><dd>{tags.length}</dd><dt>标签</dt></div>
-      </dl>
-      <img
-        class='waka'
-        src='https://wakatime.com/badge/user/649e7e90-2082-4317-97cd-f973f39aa2a1.svg'
-        alt='WakaTime：自 2025 年 7 月起的编程时长'
-        loading='lazy'
-      />
-    </aside>
 
-    <!-- ── 中：文章 ── -->
-    <main class='feed'>
-      <div class='tabs' role='tablist'>
-        {
-          TABS.map((t, i) => (
-            <button
-              type='button'
-              role='tab'
-              data-tab={t.key}
-              aria-selected={i === 0 ? 'true' : 'false'}
-            >
-              {t.label}
-              <span>{count(t.key)}</span>
-            </button>
-          ))
-        }
+      <div class='flex flex-col items-center gap-y-4'>
+        <h1 class='text-3xl font-medium'>{config.author}</h1>
+        <div class='flex flex-wrap justify-center gap-x-7 gap-y-3'>
+          <Label title='China / Hunan'>
+            <Icon name='location' class='size-5' slot='icon' />
+          </Label>
+          <Label title='GitHub' as='a' href='https://github.com/LZWcc' target='_blank'>
+            <Icon name='github' class='size-5' slot='icon' />
+          </Label>
+        </div>
       </div>
+    </section>
 
-      <details class='pinned'>
-        <summary>
-          <span class='meta'><b>LZWcc</b><span class='pin'>置顶</span></span>
-          <span class='text'
-            >你好，我叫 LZWcc，是一个软件工程专业的本科生。<del>目前正在学习前端开发。</del></span
-          >
-          <span class='more'>展开</span>
-        </summary>
-        <p>
-          每天都用 AI 写代码完成作业做 PPT，用 AI 写代码，用 AI 优化 AI 写的代码， 用 AI 给 AI
-          优化过的代码继续加注释、补报告、编思路，同时威胁 AI 写出来的代码不要像 AI 写的代码。换一个
-          AI 去检查我用 AI 写的代码是不是太像 AI 写的，结果显示 AI 味太重了，于是我用 AI 降低 AI
-          写的这份代码的 AI 味，最后再拿 AI 来检测。
+    <div id='content' class='animate flex flex-col gap-y-10 md:w-4/5 lg:w-5/6'>
+      <Section title='About'>
+        <p class='text-muted-foreground' style='margin-top: 10px;'>
+          <img
+            src='https://wakatime.com/badge/user/649e7e90-2082-4317-97cd-f973f39aa2a1.svg'
+            alt='Total time coded since Jul 18 2025'
+          />
         </p>
-        <p>
+        <p class='text-muted-foreground leading-7'>
+          你好，我叫 LZWcc，是一个软件工程专业的本科生。
+        </p>
+        <p class='text-muted-foreground leading-7'><del>目前正在学习前端开发。</del></p>
+        <p class='text-muted-foreground leading-7'>
+          每天都用 AI 写代码完成作业做 PPT，用 AI 写代码，用 AI 优化 AI 写的代码，
+          用 AI 给 AI 优化过的代码继续加注释、补报告、编思路，同时威胁 AI 写出来的代码不要像 AI 写的代码。换一个 AI 去检查我用 AI
+          写的代码是不是太像 AI 写的，结果显示 AI 味太重了，于是我用 AI 降低 AI 写的这份代码的 AI
+          味，最后再拿 AI 来检测。
+        </p>
+        <p class='text-muted-foreground leading-7'>
           我用 AI 降完后的 AI 味很低，终于可以提交 AI 作业了。然后平台用 AI 审核我用 AI
           写的作业，给我一堆 AI 的修改建议，然后我用 AI 根据它的 AI 建议，继续用 AI 修改我用 AI
           写的代码。
         </p>
-        <p>
+        <p class='text-muted-foreground leading-7'>
           最后让 AI 拿着 AI 写的反馈和我用 AI 修改后的 AI 作业，用 AI 写一份实验报告和提交说明。最后
           AI 练习并强化了软件工程能力。
         </p>
-        <p>
+        <p class='text-muted-foreground leading-7'>
           学期结束，AI
           熟练掌握了我的专业课内容、代码风格和答辩话术。而我，熟练掌握了复制、粘贴、追问和假装自己懂了。
         </p>
-        <a class='about' href='/about'>更多关于我 →</a>
-      </details>
+        <Button title='More about me' class='w-fit self-end' href='/about' variant='ahead' />
+      </Section>
+      {
+        allPostsByDate.length > 0 && (
+          <Section title='Posts'>
+            <ul class='flex flex-col gap-y-1.5 sm:gap-y-2'>
+              {allPostsByDate.map((p) => (
+                <li class='flex flex-col gap-x-2 sm:flex-row'>
+                  <PostPreview post={p} />
+                </li>
+              ))}
+            </ul>
+            <Button title='More posts' class='w-fit self-end' href='/blog' variant='ahead' />
+          </Section>
+        )
+      }
 
-      <ol class='posts'>
-        {
-          items.map(({ post, cats, minutes, by }) => (
-            <li data-cats={cats.join(' ')}>
-              <a href={`/blog/${post.id}/`} class='post' data-astro-prefetch>
-                <p class='meta'>
-                  <FormattedDate
-                    date={post.data.updatedDate ?? post.data.publishDate}
-                    dateTimeOptions={{ month: 'short' }}
-                  />
-                  <span>{minutes}</span>
-                  {by && <span>{by}</span>}
-                </p>
-                <h2>{post.data.title}</h2>
-                <p class='desc'>{post.data.description}</p>
-                {!!post.data.tags.length && (
-                  <p class='tags'>
-                    {post.data.tags.map((t) => (
-                      <span>{t}</span>
-                    ))}
-                  </p>
-                )}
-              </a>
-            </li>
-          ))
-        }
-      </ol>
-      <p class='end'><a href='/archives'>按年份看全部文章 →</a></p>
-    </main>
+      {
+        /* <Section title='Experience'>
+      <Card
+        heading='Lorem Ipsum'
+        subheading='Sit amet consectetur'
+        date='Dec 2022 - Nov 2023'
+        imagePath='/src/assets/about-astro.png'
+        altText='Lorem, ipsum dolor sit'
+        imageClass='h-12 w-auto md:-start-16'
+      >
+        <ul class='ms-4 list-disc text-muted-foreground'>
+          <li>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolore debitis recusandae, ut
+            molestiae laboriosam pariatur!
 
-    <!-- ── 右：标签、归档、作品站、技能、教育 ── -->
-    <aside class='rail'>
-      <section>
-        <h2>标签</h2>
-        <p class='chips'>
-          {
-            tags.slice(0, 18).map(([t, n]) => (
-              <a href={`/tags/${t}`}>
-                {t}
-                <span>{n}</span>
-              </a>
-            ))
-          }
-        </p>
-        <a class='all' href='/tags'>全部 {tags.length} 个标签 →</a>
-      </section>
-      <section>
-        <h2>归档</h2>
-        <ul class='years'>
-          {
-            years.map(([y, n]) => (
-              <li>
-                <a href='/archives'>
-                  {y}
-                  <span>{n} 篇</span>
-                </a>
-              </li>
-            ))
-          }
+            <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae, pariatur!</li>
+          </li>
         </ul>
-      </section>
-      <section>
-        <h2>作品站</h2>
-        <ul class='works'>
-          {
-            labWorks.map((w) => (
-              <li>
-                <a href={`${LAB}${w.path}`}>
-                  {w.cover && (
-                    <img src={`${LAB}${w.cover}`} alt='' width='64' height='40' loading='lazy' />
-                  )}
-                  <span>
-                    <small>No.{w.no}</small>
-                    {w.short ?? w.title}
-                  </span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-        <a class='all' href={`${LAB}/works`}>全部作品 →</a>
-      </section>
-      <section>
-        <h2>技能</h2>
-        <dl class='skills'>
-          {
-            SKILLS.map(([k, v]) => (
-              <div>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))
-          }
-        </dl>
-      </section>
-      <section>
-        <h2>教育</h2>
-        <p class='edu'>
-          <a href='https://www.hnie.edu.cn/' target='_blank' rel='noopener'>湖南工程学院</a> · 软件工程<br
+      </Card>
+      <Card
+        heading='Lorem Ipsum'
+        subheading='Sit amet consectetur'
+        date='Dec 2022 - Nov 2023'
+        imagePath='/src/assets/about-astro.png'
+        altText='Lorem, ipsum dolor sit'
+        imageClass='h-12 w-auto md:-start-16'
+      />
+    </Section> */
+      }
+      <Section title='Education'>
+        <Card
+          as='a'
+          heading='湖南工程学院'
+          subheading='软件工程'
+          date='September 2024 - Present'
+          href='https://www.hnie.edu.cn/'
+        >
+          <img
+            class='absolute end-0 z-0 m-0 -my-3 h-full w-1/2 object-cover opacity-40'
+            src='/images/HNIE.svg'
           />
-          <span>2024 年 9 月至今</span>
-        </p>
-      </section>
-    </aside>
-  </div>
+          {
+            /* <ul class='ms-4 list-disc text-muted-foreground'>
+          <li>
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Dolore debitis recusandae, ut
+            molestiae laboriosam pariatur!
+          </li>
+          <li>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestiae, pariatur!</li>
+        </ul> */
+          }
+        </Card>
+      </Section>
+
+      <!-- <Section title='Website List'>
+        <div class='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Do not go gentle into that good night'
+            imagePath='/src/assets/projects/1.jpg'
+          />
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Old age burn and rave at close of day'
+            imagePath='/src/assets/projects/2.jpg'
+          />
+          <ProjectCard
+            href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+            heading='Lorem ipsum'
+            subheading='Rage, rage against the dying of the light'
+            imagePath='/src/assets/projects/3.jpg'
+          />
+          <ProjectCard
+            href='/projects'
+            heading='More projects'
+            subheading='Check out more projects'
+            imagePath='/src/assets/projects/4.jpg'
+          />
+        </div>
+      </Section>
+
+      <Section title='Certifications'>
+        <Card
+          as='a'
+          heading='Lorem ipsum'
+          subheading='Lorem ipsum dolor sit amet, vidit suscipit at mei. Quem denique mea id. Usu ei regione indoctum dissentiunt, cu meliore fuisset mei, vel quod voluptua ne. Ex dicat impedit mel, at eum oratio possit voluptatum. Dicat ceteros cu vim. Impetus fuisset ullamcorper pri cu, his posse iisque ad, aliquam honestatis usu id.'
+          date='July 2024'
+          href='https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+        />
+      </Section> -->
+
+      <Section title='Skills'>
+        <SkillLayout title='Languages' skills={languages} />
+        <SkillLayout title='Frontend' skills={frontend} />
+        <SkillLayout title='Backend' skills={backend} />
+      </Section>
+    </div>
+    <Quote class='mt-12' />
+  </main>
 </PageLayout>
-
-<script>
-  // 中间一栏按类别筛选：没有 JS 时显示全部
-  const tabs = document.querySelectorAll<HTMLButtonElement>('.home .tabs button')
-  const rows = document.querySelectorAll<HTMLLIElement>('.home .posts li')
-  tabs.forEach((tab) =>
-    tab.addEventListener('click', () => {
-      const key = tab.dataset.tab!
-      tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)))
-      rows.forEach(
-        (li) => (li.hidden = key !== 'all' && !li.dataset.cats!.split(' ').includes(key))
-      )
-    })
-  )
-</script>
-
-<style>
-  .home {
-    --mono: 'SF Mono', ui-monospace, Menlo, monospace;
-    --line: hsl(var(--border) / 1);
-    --ink: hsl(var(--foreground) / 1);
-    --muted: hsl(var(--muted-foreground) / 1);
-    --accent: hsl(var(--primary) / 1);
-    display: grid;
-    grid-template-columns: 220px minmax(0, 1fr) 260px;
-    align-items: start;
-    gap: 32px;
-  }
-
-  /* ── 左：个人资料 ── */
-  /* 资料跟着滚动停在顶部；右栏有将近 950px 高，停住的话下面几块看不到，跟着页面滚 */
-  .profile {
-    position: sticky;
-    top: 96px;
-  }
-  .face {
-    width: 76px;
-    height: 76px;
-    border: 1px solid var(--line);
-    border-radius: 50%;
-    padding: 3px;
-  }
-  .profile h1 {
-    margin-top: 12px;
-    font-family: var(--mono);
-    font-size: 20px;
-    font-weight: 600;
-  }
-  .handle {
-    color: var(--muted);
-    font-size: 13px;
-  }
-  .status {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    margin-top: 14px;
-    padding: 3px 10px 3px 8px;
-    border: 1px solid hsl(var(--primary) / 0.25);
-    border-radius: 999px;
-    background: hsl(var(--primary) / 0.08);
-    color: var(--accent);
-    font-size: 11.5px;
-  }
-  .status i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent);
-  }
-  .bio {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.8;
-  }
-  .bio a,
-  .links a:hover,
-  .all:hover,
-  .end a:hover,
-  .about:hover {
-    color: var(--accent);
-  }
-  .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 16px;
-    margin-top: 14px;
-    font-size: 12.5px;
-  }
-  .links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .numbers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-  }
-  .numbers dd {
-    font-family: var(--mono);
-    font-size: 16px;
-    font-weight: 600;
-  }
-  .numbers dt {
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .waka {
-    margin-top: 16px;
-  }
-
-  /* ── 中：文章 ── */
-  .feed {
-    min-height: 100vh;
-    border-inline: 1px solid var(--line);
-  }
-  .tabs {
-    position: sticky;
-    top: 80px;
-    z-index: 10;
-    display: flex;
-    border-bottom: 1px solid var(--line);
-    background: hsl(var(--background) / 1);
-  }
-  .tabs button {
-    position: relative;
-    flex: 1;
-    height: 44px;
-    color: var(--muted);
-    font-size: 13px;
-  }
-  .tabs button span {
-    margin-left: 5px;
-    font-family: var(--mono);
-    font-size: 10.5px;
-  }
-  .tabs button[aria-selected='true'] {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .tabs button[aria-selected='true']::after {
-    position: absolute;
-    bottom: -1px;
-    left: 50%;
-    width: 32px;
-    height: 2px;
-    margin-left: -16px;
-    border-radius: 1px;
-    background: var(--accent);
-    content: '';
-  }
-  .meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0 12px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 11.5px;
-  }
-  .pinned {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--line);
-    font-size: 14px;
-    line-height: 1.8;
-  }
-  .pinned summary {
-    display: block;
-    cursor: pointer;
-    list-style: none;
-  }
-  .pinned summary::-webkit-details-marker {
-    display: none;
-  }
-  .pinned b {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .pin {
-    padding: 0 6px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    font-size: 10.5px;
-    line-height: 18px;
-  }
-  .pinned .text {
-    display: block;
-    margin-top: 4px;
-  }
-  .more {
-    color: var(--accent);
-    font-size: 12.5px;
-  }
-  .pinned[open] .more {
-    display: none;
-  }
-  .pinned p {
-    margin-top: 10px;
-    color: var(--muted);
-  }
-  .about {
-    display: inline-block;
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 12.5px;
-  }
-  .post {
-    display: block;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--line);
-    transition: background-color 0.15s;
-  }
-  .post:hover {
-    background: hsl(var(--muted) / 1);
-  }
-  .post h2 {
-    margin-top: 6px;
-    color: var(--ink);
-    font-size: 15.5px;
-    font-weight: 600;
-    line-height: 1.5;
-  }
-  .post:hover h2 {
-    color: var(--accent);
-  }
-  .desc {
-    display: -webkit-box;
-    margin-top: 4px;
-    overflow: hidden;
-    color: var(--muted);
-    font-size: 13.5px;
-    line-height: 1.75;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-  }
-  .tags span {
-    padding: 0 7px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 20px;
-  }
-  .end {
-    padding: 20px;
-    color: var(--muted);
-    font-size: 12.5px;
-    text-align: center;
-  }
-
-  /* ── 右栏 ── */
-  .rail section + section {
-    margin-top: 26px;
-  }
-  .rail h2 {
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--line);
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .chips a {
-    padding: 1px 8px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    font-size: 12px;
-  }
-  .chips a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .chips span,
-  .years span {
-    margin-left: 4px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 10.5px;
-  }
-  .all {
-    display: inline-block;
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .years a {
-    display: flex;
-    justify-content: space-between;
-    padding: 3px 0;
-    font-family: var(--mono);
-    font-size: 13px;
-  }
-  .years a:hover {
-    color: var(--accent);
-  }
-  .works li + li {
-    margin-top: 10px;
-  }
-  .works a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-  .works a:hover {
-    color: var(--accent);
-  }
-  .works img {
-    flex: none;
-    width: 64px;
-    height: 40px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    object-fit: cover;
-  }
-  .works small {
-    display: block;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 10.5px;
-  }
-  .skills div + div {
-    margin-top: 6px;
-  }
-  .skills dt {
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .skills dd,
-  .edu {
-    font-size: 13px;
-    line-height: 1.7;
-  }
-  .edu span {
-    color: var(--muted);
-    font-size: 12px;
-  }
-  .edu a:hover {
-    color: var(--accent);
-  }
-
-  /* 窄屏：一栏，从上到下是资料、文章、右栏 */
-  @media (max-width: 1023px) {
-    .home {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 28px;
-    }
-    .profile {
-      position: static;
-    }
-    .feed {
-      min-height: 0;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      overflow: clip;
-    }
-    .tabs {
-      top: 64px;
-    }
-  }
-</style>

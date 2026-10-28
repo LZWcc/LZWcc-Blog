@@ -1,0 +1,77 @@
+---
+// 热力图：一列一周、一格一天，月份标在每个月第一次出现的那一列上方。悬停格子用 title 显示日期和数量。
+// 样子照作品站的 ContributionsCard；颜色用页面上的 --h-heat-* 变量。
+import { monthLabels, toWeeks, type Day } from '@/utils/heatmap'
+
+interface Props {
+  days: Day[]
+  weeks: number
+  unit: string // 悬停时数量后面的字，如「次贡献」「篇」
+}
+const { days, weeks: count, unit } = Astro.props
+const weeks = toWeeks(days, count)
+const months = monthLabels(weeks)
+const tip = (d: Day) =>
+  `${Number(d.date.slice(5, 7))}月${Number(d.date.slice(8))}日 · ${d.count ? `${d.count} ${unit}` : '没有'}`
+---
+
+<div class='heat' style={`--weeks:${weeks.length}`}>
+  <div class='months' aria-hidden='true'>{months.map((m) => <span>{m}</span>)}</div>
+  <div class='grid'>
+    {
+      weeks.map((week) => (
+        <div class='week'>
+          {week.map((d) => (
+            <i data-level={d.level} title={tip(d)} />
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .months,
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), minmax(0, 1fr));
+    gap: 2px;
+  }
+  .months {
+    height: 16px;
+    color: var(--h-faint);
+    font-size: 10px;
+  }
+  .months span {
+    white-space: nowrap;
+  }
+  .week {
+    display: grid;
+    align-content: start;
+    gap: 2px;
+  }
+  i {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--h-empty);
+    outline: 1.5px solid transparent;
+    outline-offset: 1px;
+    transition: outline-color 150ms;
+  }
+  i:hover {
+    outline-color: var(--h-ink);
+  }
+  [data-level='1'] {
+    background: var(--h-heat-1);
+  }
+  [data-level='2'] {
+    background: var(--h-heat-2);
+  }
+  [data-level='3'] {
+    background: var(--h-heat-3);
+  }
+  [data-level='4'] {
+    background: var(--h-heat-4);
+  }
+</style>

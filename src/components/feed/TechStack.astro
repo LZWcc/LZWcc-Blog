@@ -1,0 +1,154 @@
+---
+// 技术栈：左边一摞等距视角的薄片，每片是一层（界面、框架、语言、服务、工具），右边每一行 logo 缓慢横向漂移。
+// 样子照作品站的 TechStackCard（去掉了指到某层时薄片抬起的交互），logo 的 SVG 来自作品站 home.json 的 stack。
+import type { HomeData } from '@/utils/home-data'
+
+interface Props {
+  stack: HomeData['stack']
+}
+const { stack } = Astro.props
+---
+
+<div class='stage'>
+  <div class='plates' aria-hidden='true'>
+    {
+      stack.map((layer, i) => (
+        <div class='plate-wrap' style={`--i:${i}`}>
+          <div class='plate'>
+            <span class='engrave' set:html={layer.icon} />
+          </div>
+        </div>
+      ))
+    }
+  </div>
+  <div class='rows'>
+    {
+      stack.map((layer, i) => (
+        <div class='row' style={`--i:${i}`} title={layer.name}>
+          {/* 同一组 logo 放两遍，平移一半距离时首尾刚好接上 */}
+          <div class:list={['track', { reverse: i % 2 }]}>
+            {[0, 1].map((copy) =>
+              layer.logos.map((logo) => (
+                <span
+                  class:list={['logo', { mono: logo.mono }]}
+                  aria-hidden={copy === 1 ? 'true' : undefined}
+                  set:html={logo.svg}
+                />
+              ))
+            )}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .stage {
+    --step: 38px;
+    --plate: 92px;
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    height: 216px;
+    overflow: hidden;
+  }
+  .plates {
+    position: relative;
+  }
+  .plate-wrap {
+    position: absolute;
+    top: calc(var(--i) * var(--step));
+    left: 50%;
+    z-index: calc(10 - var(--i));
+    width: var(--plate);
+    height: var(--plate);
+    margin-left: calc(var(--plate) / -2);
+    animation: float 4.5s ease-in-out calc(var(--i) * -0.6s) infinite alternate;
+  }
+  @keyframes float {
+    to {
+      transform: translateY(-7px);
+    }
+  }
+  /* 先绕 Z 轴转 45°，再向后倒 58°，正方形就成了等距视角的菱形；几层 box-shadow 叠出厚度 */
+  .plate {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--h-plate-top), var(--h-plate-bottom));
+    box-shadow:
+      inset 1px 1px 0 var(--h-plate-hi),
+      1px 1px 0 var(--h-plate-e1),
+      2px 2px 0 var(--h-plate-e2),
+      3px 3px 0 var(--h-plate-e3),
+      4px 4px 0 var(--h-plate-e4),
+      14px 14px 24px var(--h-plate-shadow);
+    transform: rotateX(58deg) rotateZ(45deg);
+  }
+  .engrave {
+    position: absolute;
+    inset: 31%;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--h-engrave);
+    box-shadow:
+      inset 1px 1px 3px rgb(0 0 0 / 10%),
+      inset -1px -1px 0 var(--h-plate-hi);
+    color: var(--h-engrave-ink);
+  }
+  .engrave :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  .rows {
+    display: grid;
+    grid-auto-rows: var(--step);
+    align-content: start;
+    padding-top: calc(var(--plate) / 2 - var(--step) / 2);
+    mask-image: linear-gradient(90deg, transparent, #000 10%, #000 86%, transparent);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .track {
+    display: flex;
+    flex-shrink: 0;
+    gap: 26px;
+    padding-right: 26px;
+    animation: drift calc(36s + var(--i) * 5s) linear infinite;
+  }
+  .track.reverse {
+    animation-direction: reverse;
+  }
+  .row:hover .track {
+    animation-play-state: paused;
+  }
+  @keyframes drift {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  .logo {
+    display: block;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+  }
+  .logo :global(svg) {
+    width: 100%;
+    height: 100%;
+  }
+  :global(.dark) .logo.mono {
+    filter: invert(1) hue-rotate(180deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .plate-wrap,
+    .track {
+      animation: none;
+    }
+  }
+</style>

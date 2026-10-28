@@ -1,0 +1,238 @@
+---
+// AI 用量：token 总量、近 30 天的迷你折线、各模型占比的环形图、Claude Code 和 Codex 的比例。
+// 样子照作品站的 TokenCard，数据是作品站 home.json 里的 tokens（作品站发布时从 token-stats 同步）。
+import type { HomeData } from '@/utils/home-data'
+
+interface Props {
+  tokens: HomeData['tokens']
+}
+const { tokens } = Astro.props
+
+const COLORS = ['#d97757', '#10a37f', '#3fb9a0', '#7fcfb9', '#b5e2d4', '#9a9a9a']
+const R = 52
+const CIRCUMFERENCE = 2 * Math.PI * R
+const GAP = 3
+let offset = 0
+const segments = tokens.models.map((model, i) => {
+  const share = model.total / tokens.total
+  const length = share * CIRCUMFERENCE
+  const s = {
+    ...model,
+    color: COLORS[i] ?? COLORS[COLORS.length - 1],
+    dash: `${Math.max(length - GAP, 0)} ${CIRCUMFERENCE}`,
+    offset: -offset
+  }
+  offset += length
+  return s
+})
+
+const SPARK = { width: 110, height: 28 }
+const last30 = tokens.daily.map((d) => d.total)
+const max = Math.max(...last30, 1)
+const line = last30
+  .map((v, i) => {
+    const x = (i / (last30.length - 1)) * SPARK.width
+    const y = SPARK.height - (v / max) * (SPARK.height - 4) - 2
+    return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`
+  })
+  .join(' ')
+const area = `${line} L${SPARK.width},${SPARK.height} L0,${SPARK.height} Z`
+const cc = tokens.agents['claude-code'] / (tokens.agents['claude-code'] + tokens.agents.codex)
+const compact = (n: number) =>
+  n >= 1e9 ? `${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n.toLocaleString()
+---
+
+<div class='tokens'>
+  <div class='head'>
+    <div>
+      <p class='total'>{compact(tokens.total)}</p>
+      <p class='caption'>tokens · Claude Code 与 Codex</p>
+    </div>
+    <figure class='spark'>
+      <svg viewBox={`0 0 ${SPARK.width} ${SPARK.height}`} aria-hidden='true'>
+        <path d={area} class='spark-area'></path>
+        <path d={line} class='spark-line'></path>
+      </svg>
+      <figcaption>近 30 天 {compact(tokens.last30)}</figcaption>
+    </figure>
+  </div>
+  <div class='chart'>
+    <svg viewBox='0 0 140 140' class='donut' role='img' aria-label='各模型的 token 占比'>
+      {
+        segments.map((s, i) => (
+          <circle
+            cx='70'
+            cy='70'
+            r={R}
+            class='segment'
+            stroke={s.color}
+            stroke-dasharray={s.dash}
+            stroke-dashoffset={s.offset}
+            style={`--i:${i}`}
+          />
+        ))
+      }
+      <text x='70' y='68' class='center-big'>{tokens.modelCount}</text>
+      <text x='70' y='86' class='center-small'>个模型</text>
+    </svg>
+    <ul class='legend'>
+      {
+        segments.map((s) => (
+          <li>
+            <i style={`background:${s.color}`} />
+            <span class='name'>{s.name}</span>
+            <span class='value'>{compact(s.total)}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class='split'>
+    <span class='cc' style={`width:${cc * 100}%`}></span><span class='codex'></span>
+  </div>
+  <p class='agents'>
+    <span>Claude Code {Math.round(cc * 100)}%</span>
+    <span>连续 <b>{tokens.streak}</b> 天 · 最长 {tokens.longestStreak}</span>
+    <span>Codex {100 - Math.round(cc * 100)}%</span>
+  </p>
+</div>
+
+<style>
+  .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .total {
+    color: var(--h-ink);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .caption {
+    margin-top: 2px;
+    color: var(--h-muted);
+    font-size: 11.5px;
+  }
+  .spark {
+    display: grid;
+    justify-items: end;
+    gap: 3px;
+  }
+  .spark svg {
+    width: 110px;
+    height: 28px;
+    overflow: visible;
+  }
+  .spark-area {
+    fill: rgb(217 119 87 / 12%);
+  }
+  .spark-line {
+    fill: none;
+    stroke: #d97757;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .spark figcaption {
+    color: var(--h-muted);
+    font-size: 10.5px;
+  }
+  .chart {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+  }
+  .donut {
+    width: 92px;
+    overflow: visible;
+    transform: rotate(-90deg);
+  }
+  .segment {
+    fill: none;
+    stroke-width: 15;
+    animation: sweep 900ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 90ms) both;
+  }
+  @keyframes sweep {
+    from {
+      stroke-dasharray: 0 400;
+    }
+  }
+  .center-big,
+  .center-small {
+    text-anchor: middle;
+    transform: rotate(90deg);
+    transform-origin: 70px 70px;
+  }
+  .center-big {
+    fill: var(--h-ink);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .center-small {
+    fill: var(--h-muted);
+    font-size: 9px;
+  }
+  .legend {
+    display: grid;
+    gap: 1px;
+    font-size: 11px;
+  }
+  .legend li {
+    display: grid;
+    grid-template-columns: 8px 1fr auto;
+    align-items: center;
+    gap: 7px;
+  }
+  .legend i {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+  }
+  .legend .name {
+    overflow: hidden;
+    color: var(--h-ink-2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .legend .value {
+    color: var(--h-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .split {
+    display: flex;
+    gap: 3px;
+    height: 5px;
+  }
+  .split span {
+    border-radius: 3px;
+  }
+  .cc {
+    background: #d97757;
+  }
+  .codex {
+    flex: 1;
+    background: #10a37f;
+  }
+  .agents {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 7px;
+    color: var(--h-muted);
+    font-size: 10.5px;
+  }
+  .agents b {
+    color: var(--h-ink);
+    font-weight: 600;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .segment {
+      animation: none;
+    }
+  }
+</style>
