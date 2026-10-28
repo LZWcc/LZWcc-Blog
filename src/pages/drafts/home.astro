@@ -32,15 +32,23 @@ const home = await getHomeData()
 // 中间一栏按 frontmatter 的 category 分栏（一篇一类，见 src/utils/category.ts）；没填的只在「全部」里
 type Tab = 'all' | Category
 
-// 文章里第一张本地配图（![](./x.webp)），有就放进动态里
+// 文章里的本地配图（![](./x.webp)），按出现顺序。博客的图多是截图和示意图，裁掉就看不懂，所以都不裁：
+//   全是宽图（宽 ≥ 高 × 1.8，如 Lighthouse、终端截图）：上下叠放、按原比例，最多 2 张
+//   其他：照推特的格子排（1 整宽 / 2 并排 / 3 一大两小 / 4 田字），每张完整缩放进格子
+// 放不下的在最后一张上标 +N
 const contentImages = import.meta.glob<{ default: ImageMetadata }>(
   '/src/content/blog/**/*.{png,jpg,jpeg,webp}'
 )
-function firstImage(post: (typeof posts)[number]) {
-  const m = post.body?.match(/!\[[^\]]*\]\(\.?\/?([^)\s]+\.(?:png|jpe?g|webp))\)/)
-  if (!m || !post.filePath) return undefined
+const MAX_IMAGES = 4
+const MAX_STACKED = 2
+const WIDE = 1.8
+function localImages(post: (typeof posts)[number]) {
+  if (!post.body || !post.filePath) return []
   const dir = post.filePath.slice(0, post.filePath.lastIndexOf('/'))
-  return contentImages[`/${dir}/${m[1]}`]
+  const files = [...post.body.matchAll(/!\[[^\]]*\]\(\.?\/?([^)\s]+\.(?:png|jpe?g|webp))\)/g)].map(
+    (m) => m[1]
+  )
+  return [...new Set(files)].map((f) => contentImages[`/${dir}/${f}`]).filter((load) => !!load)
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -50,16 +58,25 @@ const shortDate = (d: Date) =>
     ? `${pad(d.getUTCMonth() + 1)}.${pad(d.getUTCDate())}`
     : `${d.getUTCFullYear()}.${pad(d.getUTCMonth() + 1)}.${pad(d.getUTCDate())}`
 
+async function mediaLayout(loads: ReturnType<typeof localImages>) {
+  const all = await Promise.all(
+    loads.slice(0, MAX_IMAGES).map(async (load) => (await load()).default)
+  )
+  const stacked = all.length > 1 && all.every((img) => img.width / img.height >= WIDE)
+  const images = stacked ? all.slice(0, MAX_STACKED) : all
+  return { images, stacked, moreImages: loads.length - images.length }
+}
+
 const items = await Promise.all(
   posts.map(async (post) => {
-    const img = firstImage(post)
+    const loads = localImages(post)
     return {
       post,
       cat: post.data.category,
       date: shortDate(post.data.updatedDate ?? post.data.publishDate),
       minutes: (await render(post)).remarkPluginFrontmatter.minutesRead as string,
       by: authorshipLabel(post.data.authorship),
-      image: img ? (await img()).default : undefined
+      ...(await mediaLayout(loads))
     }
   })
 )
@@ -233,7 +250,7 @@ const avatar = (await logo()).default
 
             <div class='posts'>
               {
-                items.map(({ post, cat, date, minutes, by, image }) => (
+                items.map(({ post, cat, date, minutes, by, images, stacked, moreImages }) => (
                   <article class='post' data-cat={cat ?? ''}>
                     <Image class='who' src={avatar} alt='' width={72} />
                     <div class='main'>
@@ -250,9 +267,25 @@ const avatar = (await logo()).default
                       <a class='body' href={`/blog/${post.id}/`} data-astro-prefetch>
                         <h2>{post.data.title}</h2>
                         <p class='text'>{post.data.description}</p>
-                        {image && (
-                          <span class='media'>
-                            <Image src={image} alt='' width={720} loading='lazy' />
+                        {images.length > 0 && (
+                          <span class={`media ${stacked ? 'stack' : `n${images.length}`}`}>
+                            {images.map((img, i) => (
+                              <span
+                                class='cell'
+                                data-more={
+                                  i === images.length - 1 && moreImages
+                                    ? `+${moreImages}`
+                                    : undefined
+                                }
+                              >
+                                <Image
+                                  src={img}
+                                  alt=''
+                                  width={images.length === 1 || stacked ? 720 : 480}
+                                  loading='lazy'
+                                />
+                              </span>
+                            ))}
                           </span>
                         )}
                       </a>
@@ -764,26 +797,68 @@ const avatar = (await logo()).default
   .body:hover h2 {
     color: var(--h-accent);
   }
+  /* 摘要最多 3 行，多的用省略号截掉（完整的在文章页和搜索结果里） */
   .text {
+    display: -webkit-box;
     margin-top: 2px;
+    overflow: hidden;
     color: var(--h-ink-2);
     font-size: 14px;
     line-height: 1.75;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
   }
+  /* 配图（规则见上面的 mediaLayout）：格子排法时整块固定 16:9，每张完整缩放进格子，空出来的地方是卡片底色 */
   .media {
-    display: block;
+    display: grid;
+    gap: 2px;
     margin-top: 12px;
     overflow: hidden;
     border: 1px solid var(--h-line);
     border-radius: 12px;
+    background: var(--h-line);
+  }
+  .media:not(.n1, .stack) {
+    aspect-ratio: 16 / 9;
+    grid-template-columns: 1fr 1fr;
+  }
+  .media.n3,
+  .media.n4 {
+    grid-template-rows: 1fr 1fr;
+  }
+  .media.n3 .cell:first-child {
+    grid-row: span 2;
+  }
+  .cell {
+    position: relative;
+    min-height: 0;
     background: var(--h-card);
   }
-  .media img {
+  .cell img {
     display: block;
     width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .media.n1 img {
     max-height: 320px;
-    object-fit: cover;
-    object-position: top;
+  }
+  /* 宽图叠放：按原比例，不定高 */
+  .media.stack .cell img {
+    height: auto;
+  }
+  /* 超过 4 张：第 4 张蒙一层，写剩下几张 */
+  .cell[data-more]::after {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: rgb(0 0 0 / 45%);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 600;
+    content: attr(data-more);
   }
   .foot {
     display: flex;
