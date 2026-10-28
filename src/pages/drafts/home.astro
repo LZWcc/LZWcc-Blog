@@ -350,9 +350,26 @@ const avatar = (await logo()).default
         else url.searchParams.set('cat', key)
         history.replaceState(null, '', url)
         // 已经往下滚过的话，回到列表顶部（分类栏下面），不停在不相关的中间位置
-        if (scroll && feed.getBoundingClientRect().top < 0) feed.scrollIntoView({ behavior: 'smooth' })
+        if (scroll && feed.getBoundingClientRect().top < 0)
+          feed.scrollIntoView({ behavior: 'smooth' })
       }
       tabs.forEach((tab) => tab.addEventListener('click', () => show(tab.dataset.tab!, true)))
+      // 分类栏吸顶时加 .stuck（只在滚动时检查，一帧最多一次）
+      const bar = document.querySelector<HTMLElement>('.tabs')!
+      let ticking = false
+      const checkStuck = () => {
+        ticking = false
+        const top = parseFloat(getComputedStyle(bar).top)
+        bar.classList.toggle('stuck', bar.getBoundingClientRect().top <= top + 0.5 && scrollY > 0)
+      }
+      addEventListener(
+        'scroll',
+        () => {
+          if (!ticking) ((ticking = true), requestAnimationFrame(checkStuck))
+        },
+        { passive: true }
+      )
+      checkStuck()
       show(new URLSearchParams(location.search).get('cat') ?? 'all', false)
       // 左右两栏学推特：比屏幕矮就停在顶栏下面；比屏幕高就先跟着页面滚，底部露出来以后停住。
       // 停的位置在样式里算（.profile, .rail 的 top），这里只把栏的高度交给它
@@ -648,12 +665,16 @@ const avatar = (await logo()).default
   .tabs {
     position: sticky;
     top: var(--head);
-    transition: top 0.3s;
     z-index: 10;
     display: flex;
     border-bottom: 1px solid var(--h-line);
-    /* 半透明加模糊：顶部的淡蓝渐变能透出来，不像一块实心的灰 */
-    background: color-mix(in srgb, var(--h-bg) 78%, transparent);
+    /* 在原位时透明，和中间一栏一体（背后是顶部的淡蓝渐变）；吸顶以后文章从下面滚过，才加底色和模糊 */
+    transition:
+      top 0.3s,
+      background-color 0.2s;
+  }
+  .tabs.stuck {
+    background: color-mix(in srgb, var(--h-bg) 85%, transparent);
     backdrop-filter: blur(10px);
   }
   .tabs button {
