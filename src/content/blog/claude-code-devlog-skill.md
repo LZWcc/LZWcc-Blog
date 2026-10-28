@@ -3,7 +3,6 @@ title: 用一个 skill 让 Claude 把开发过程写进博客
 description: AI 写的开发记录又长又爱下结论，每次还要重复交代博客的格式和检查方法。把这些规矩做成一个 Claude Code skill：一段让 Claude 建 skill 的提示词，加上完整内容。
 publishDate: 2026-10-21 17:41:04
 tags:
-  - Claude
   - Claude Code
   - Skill
   - 博客

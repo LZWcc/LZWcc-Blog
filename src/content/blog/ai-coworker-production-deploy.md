@@ -4,7 +4,6 @@ description: 当几个人各自用不同的 AI 编程工具开发、并且都能
 publishDate: 2026-10-21 10:24:18
 tags:
   - Claude Code
-  - AI 协作
   - Docker
   - 运维
 language: zh

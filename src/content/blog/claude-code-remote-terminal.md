@@ -4,7 +4,7 @@ description: 在 245 毫秒延迟的 VPS 上跑 Claude Code：为什么 herdr、
 publishDate: 2026-10-20 22:10:38
 updatedDate: 2026-10-21 17:46:33
 tags:
-  - Claude
+  - Claude Code
   - tmux
   - iTerm2
   - 终端

@@ -3,8 +3,7 @@ title: ELF 文件变量存储与段表/符号表分析笔记
 description: '一段 C 代码编译成 .o 以后，各个变量和字符串分别放在哪个 section，用 readelf 和 objdump 查段表和符号表来验证。'
 publishDate: 2025-11-16 14:39:37
 tags:
-  - os
-  - risc-v
+  - 计算机系统
 category: study
 ---
 

@@ -3,8 +3,8 @@ title: 面向对象程序设计课程设计实验报告
 description: '面向对象程序设计的课程设计报告：用 Java 写的在线图书管理系统，从需求分析、模块划分、详细设计写到调试过程和使用说明。'
 publishDate: 2025-12-24 16:07:29
 tags:
-  - Example
-  - Technology
+  - Java
+  - OOP
 draft: false
 category: study
 ---

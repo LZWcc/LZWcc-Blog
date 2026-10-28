@@ -3,8 +3,7 @@ title: Claude Code 使用 settings.json 配置第三方模型供应商
 description: '从 Claude Code 1.0.61 开始，原生支持通过 settings.json 切换 DeepSeek、Kimi、智谱 GLM 等第三方模型供应商，本文详细介绍配置方法和注意事项。'
 publishDate: 2026-04-24 15:24:00
 tags:
-  - Claude
-  - AI
+  - Claude Code
 category: tooling
 ---
 

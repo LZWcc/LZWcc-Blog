@@ -4,7 +4,6 @@ description: 在 Mac 上通过 Codex CLI 的 notify 配置调用 Shell 脚本，
 publishDate: '2026-10-17T11:16:05+08:00'
 tags:
   - Codex
-  - AI
   - Telegram
   - macOS
 draft: false

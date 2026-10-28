@@ -6,8 +6,6 @@ updatedDate: '2026-10-20T21:07:44+08:00'
 tags:
   - UML
   - 软件工程
-  - Rational Rose
-  - 需求分析
 language: zh
 draft: false
 category: study

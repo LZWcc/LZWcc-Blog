@@ -3,7 +3,7 @@ title: 使用 Node.js + Express + MySQL 实现动态字段映射的数据查询
 description: '用 Node.js、Express 和 MySQL 写一个查询接口：读出传感器数据，按字段映射表把字段名换成前端显示的名称，再渲染到 Element Plus 的表格里。'
 publishDate: 2025-10-15 15:45:12
 tags:
-  - Node
+  - Node.js
 category: study
 ---
 ## 🎯 项目目标

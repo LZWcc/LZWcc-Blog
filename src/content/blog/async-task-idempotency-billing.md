@@ -5,9 +5,7 @@ publishDate: 2026-10-21 11:03:26
 tags:
   - 后端
   - 前端
-  - 分布式
   - 幂等
-  - 复盘
 language: zh
 draft: false
 authorship:

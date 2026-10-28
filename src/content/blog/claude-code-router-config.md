@@ -3,8 +3,7 @@ title: Claude Code Router 使用 config.json 配置多模型路由
 description: '使用 claude-code-router 统一管理 Anthropic 兼容中转站、OpenAI 兼容中转站和 DeepSeek，并通过 Router 配置默认、后台、推理和长上下文模型。'
 publishDate: 2026-04-24 20:31:06
 tags:
-  - Claude
-  - AI
+  - Claude Code
 category: tooling
 ---
 `claude-code-router` 可以把 Claude Code 的请求转发到不同模型供应商。相比在每个项目里反复改 `.claude/settings.json`，它更适合同时使用 Anthropic 兼容中转站、OpenAI 兼容中转站、DeepSeek 等多个模型，并在 Claude Code 里通过 `/model provider,model` 快速切换。

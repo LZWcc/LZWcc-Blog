@@ -5,9 +5,7 @@ publishDate: 2026-10-25 23:16:05
 tags:
   - Oracle Cloud
   - SSH
-  - sing-box
-  - Mihomo
-  - Shadowrocket
+  - 代理
 comment: false
 authorship:
   mode: generated

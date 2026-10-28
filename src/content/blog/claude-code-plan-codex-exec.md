@@ -4,9 +4,8 @@ description: Claude Code 跑在服务器上，代码和 Codex 在 Mac 上。用 
 publishDate: '2026-10-19T22:40:01+08:00'
 updatedDate: '2026-10-20T13:22:28+08:00'
 tags:
-  - Claude
+  - Claude Code
   - Codex
-  - AI
 draft: false
 comment: false
 authorship:

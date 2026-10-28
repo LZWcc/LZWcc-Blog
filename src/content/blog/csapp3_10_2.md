@@ -3,7 +3,7 @@ title: 使用 GDB 调试器
 description: 'csapp p193'
 publishDate: 2025-12-23 22:46:21
 tags:
-  - CSAPP
+  - 计算机系统
 category: study
 ---
 

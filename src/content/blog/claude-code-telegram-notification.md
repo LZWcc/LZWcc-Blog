@@ -3,8 +3,7 @@ title: Claude Code 任务结束后自动推送 Telegram 通知（零额外 Token
 description: 利用 Claude Code 原生 Stop Hook、Shell 脚本和 Telegram Bot API，在远程开发完成一轮回复后自动发送通知，无需 MCP 或额外模型调用。
 publishDate: '2026-10-17T10:51:33+08:00'
 tags:
-  - Claude
-  - AI
+  - Claude Code
   - Telegram
   - SSH
 draft: false

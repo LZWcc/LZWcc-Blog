@@ -3,7 +3,7 @@ title: 远程 Claude Code 里用 Control+V 贴 Mac 截图
 description: Claude Code 跑在 VPS 上时，Control+V 读的是服务器的剪贴板。放一个假的 xclip，按 Control+V 时通过 ssh 取 Mac 剪贴板里的图片，转成 WebP 传过来，一次 1.3～2.5 秒；Finder 里复制的文件也能贴。
 publishDate: 2026-10-21 20:11:35
 tags:
-  - Claude
+  - Claude Code
   - 终端
   - SSH
   - macOS
