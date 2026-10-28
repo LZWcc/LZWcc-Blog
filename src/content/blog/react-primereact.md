@@ -1,6 +1,6 @@
 ---
 title: 如何在 primereact 中实现主题切换器
-description: 'No description.'
+description: '在 PrimeReact 里切换主题：把主题的 CSS 复制到 public/themes，在 index.html 里放一个 id 为 theme-link 的链接，写一个 Hook 去换它的地址，再在导航栏里调用。'
 publishDate: 2026-03-03 22:41:05
 tags:
   - React
