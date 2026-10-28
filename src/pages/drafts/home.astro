@@ -334,16 +334,26 @@ const avatar = (await logo()).default
     <div class='foot-wrap'><Footer /></div>
 
     <script>
-      // 中间一栏按类别筛选：没有 JS 时显示全部
-      const tabs = document.querySelectorAll<HTMLButtonElement>('.tabs button')
+      // 中间一栏按类别筛选（没有 JS 时显示全部）。选中的类别写进地址 ?cat=，刷新、分享链接都还在这一类；
+      // 置顶的自我介绍只在「全部」里显示
+      const tabs = [...document.querySelectorAll<HTMLButtonElement>('.tabs button')]
       const rows = document.querySelectorAll<HTMLElement>('.posts .post')
-      tabs.forEach((tab) =>
-        tab.addEventListener('click', () => {
-          const key = tab.dataset.tab!
-          tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)))
-          rows.forEach((row) => (row.hidden = key !== 'all' && row.dataset.cat !== key))
-        })
-      )
+      const pinned = document.querySelector<HTMLElement>('.pinned')!
+      const feed = document.querySelector<HTMLElement>('.feed')!
+      function show(key: string, scroll: boolean) {
+        if (!tabs.some((t) => t.dataset.tab === key)) key = 'all'
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === key)))
+        rows.forEach((row) => (row.hidden = key !== 'all' && row.dataset.cat !== key))
+        pinned.hidden = key !== 'all'
+        const url = new URL(location.href)
+        if (key === 'all') url.searchParams.delete('cat')
+        else url.searchParams.set('cat', key)
+        history.replaceState(null, '', url)
+        // 已经往下滚过的话，回到列表顶部（分类栏下面），不停在不相关的中间位置
+        if (scroll && feed.getBoundingClientRect().top < 0) feed.scrollIntoView({ behavior: 'smooth' })
+      }
+      tabs.forEach((tab) => tab.addEventListener('click', () => show(tab.dataset.tab!, true)))
+      show(new URLSearchParams(location.search).get('cat') ?? 'all', false)
       // 左右两栏学推特：比屏幕矮就停在顶栏下面；比屏幕高就先跟着页面滚，底部露出来以后停住。
       // 停的位置在样式里算（.profile, .rail 的 top），这里只把栏的高度交给它
       const asides = document.querySelectorAll<HTMLElement>('.profile, .rail')
@@ -679,6 +689,9 @@ const avatar = (await logo()).default
     gap: 12px;
     padding: 18px 20px;
     border-bottom: 1px solid var(--h-line);
+  }
+  .post[hidden] {
+    display: none;
   }
   .who {
     width: 36px;
