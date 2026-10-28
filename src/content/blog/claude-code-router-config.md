@@ -5,6 +5,7 @@ publishDate: 2026-04-24 20:31:06
 tags:
   - Claude
   - AI
+category: tooling
 ---
 `claude-code-router` 可以把 Claude Code 的请求转发到不同模型供应商。相比在每个项目里反复改 `.claude/settings.json`，它更适合同时使用 Anthropic 兼容中转站、OpenAI 兼容中转站、DeepSeek 等多个模型，并在 Claude Code 里通过 `/model provider,model` 快速切换。
 

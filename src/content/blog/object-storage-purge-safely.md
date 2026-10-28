@@ -13,6 +13,7 @@ draft: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 这篇记录一次**批量删除用户文件**的过程（Go 后端，文件放在对象存储）。

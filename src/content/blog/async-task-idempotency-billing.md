@@ -13,6 +13,7 @@ draft: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 这篇整理几个"生成任务状态"问题。它们单独看都是小 bug，放在一起看，其实是同一个问题：**在网络不可靠的情况下，客户端怎么判断一个付费的异步任务到底处于什么状态**。

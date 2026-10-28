@@ -13,6 +13,7 @@ draft: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 这篇记录一次处理 React #185（Maximum update depth exceeded）的过程，技术栈是 React 19 + `@xyflow/react` 12。先说结论：**我们定位并修掉了两条触发路径，但之后线上仍偶发，没有根治**；最后做的是给崩溃报告加诊断，让下一次崩溃能直接告诉我们是哪条路径在循环。

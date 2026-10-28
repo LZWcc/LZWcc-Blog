@@ -12,6 +12,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 ## 要解决的问题

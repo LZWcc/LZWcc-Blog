@@ -4,6 +4,7 @@ description: 'No desc'
 publishDate: 2026-05-06 15:08:43
 tags:
   - python
+category: study
 ---
 
 ## 第一题：p094扑克排序

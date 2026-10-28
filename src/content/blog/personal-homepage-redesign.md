@@ -13,6 +13,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: project
 ---
 
 我在找前端的工作，想要一个点进来就让人眼前一亮的个人主页，从设计上就能看出审美。站点用 Nuxt 写，内容是我在 X、抖音、linux.do 上刷到的界面和动效：每个复刻一遍，写成一篇带演示和复现提示词的文章。现在已经上线：[lab.lzwcc.xyz](https://lab.lzwcc.xyz)。

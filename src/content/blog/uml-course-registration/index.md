@@ -10,6 +10,7 @@ tags:
   - 需求分析
 language: zh
 draft: false
+category: study
 ---
 
 第一次做 UML 实验时，我连图里的小人、椭圆和虚线分别表示什么都不清楚。打开 Rational Rose，看到模板和一排绘图工具，也不知道该从哪里开始。

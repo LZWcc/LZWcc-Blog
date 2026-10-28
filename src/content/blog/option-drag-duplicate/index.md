@@ -9,6 +9,7 @@ tags:
   - 复盘
 language: zh
 draft: false
+category: project
 ---
 
 这篇文章记录我给开源项目 [ohmygame](https://github.com/WhiteTowerAI/ohmygame) 的资源画布（Asset Canvas）实现 **Option 拖拽复制节点** 的完整过程。

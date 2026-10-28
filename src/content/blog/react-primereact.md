@@ -4,6 +4,7 @@ description: 'No description.'
 publishDate: 2026-03-03 22:41:05
 tags:
   - React
+category: study
 ---
 ## 1. 静态资源配置
 

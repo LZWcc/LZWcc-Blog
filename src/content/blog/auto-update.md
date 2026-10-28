@@ -4,6 +4,7 @@ description: '不错的尝试...'
 publishDate: 2025-12-21 17:14:33
 tags:
   - github
+category: tooling
 ---
 ## 第一步：配置 GitHub Secrets
 

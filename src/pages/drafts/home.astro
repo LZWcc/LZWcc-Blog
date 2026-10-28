@@ -7,6 +7,7 @@
 import { Image } from 'astro:assets'
 import { render } from 'astro:content'
 
+import { Quote } from 'astro-pure/advanced'
 import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import { getBlogCollection, getUniqueTagsWithCount, sortMDByDate } from 'astro-pure/server'
 import { Icon } from 'astro-pure/user'
@@ -15,6 +16,7 @@ import Heatmap from '@/components/feed/Heatmap.astro'
 import TechStack from '@/components/feed/TechStack.astro'
 import TokenUsage from '@/components/feed/TokenUsage.astro'
 import { authorshipLabel } from '@/utils/authorship'
+import { CATEGORIES, categoryLabel, type Category } from '@/utils/category'
 import { writingDays } from '@/utils/heatmap'
 import { getHomeData, LAB } from '@/utils/home-data'
 import banner from '@/assets/home/banner.webp'
@@ -27,21 +29,8 @@ const posts = sortMDByDate(await getBlogCollection())
 const tags = getUniqueTagsWithCount(posts)
 const home = await getHomeData()
 
-// 中间一栏的筛选：一篇只归一类
-const AI_TAGS = ['claude', 'claude code', 'codex', 'ai', 'skill']
-const STUDY_BEFORE = new Date('2026-06-01')
-type Tab = 'all' | 'ai' | 'eng' | 'study'
-const TAB_NAME: Record<Exclude<Tab, 'all'>, string> = {
-  ai: 'AI 协作',
-  eng: '工程实践',
-  study: '学习笔记'
-}
-const category = (post: (typeof posts)[number]): Exclude<Tab, 'all'> =>
-  post.data.publishDate < STUDY_BEFORE
-    ? 'study'
-    : post.data.tags.some((t) => AI_TAGS.includes(t))
-      ? 'ai'
-      : 'eng'
+// 中间一栏按 frontmatter 的 category 分栏（一篇一类，见 src/utils/category.ts）；没填的只在「全部」里
+type Tab = 'all' | Category
 
 // 文章里第一张本地配图（![](./x.webp)），有就放进动态里
 const contentImages = import.meta.glob<{ default: ImageMetadata }>(
@@ -66,7 +55,7 @@ const items = await Promise.all(
     const img = firstImage(post)
     return {
       post,
-      cat: category(post),
+      cat: post.data.category,
       date: shortDate(post.data.updatedDate ?? post.data.publishDate),
       minutes: (await render(post)).remarkPluginFrontmatter.minutesRead as string,
       by: authorshipLabel(post.data.authorship),
@@ -74,14 +63,19 @@ const items = await Promise.all(
     }
   })
 )
-const TABS: { key: Tab; label: string }[] = [
+const TABS: { key: Tab; label: string; note?: string }[] = [
   { key: 'all', label: '全部' },
-  { key: 'ai', label: 'AI 协作' },
-  { key: 'eng', label: '工程实践' },
-  { key: 'study', label: '学习笔记' }
+  ...CATEGORIES.map((c) => ({ key: c.key, label: c.label, note: c.note }))
 ]
 const count = (key: Tab) =>
   key === 'all' ? items.length : items.filter((i) => i.cat === key).length
+
+// 左栏的技能（原首页的 Skills）
+const SKILLS: [string, string[]][] = [
+  ['语言', ['HTML', 'JavaScript', 'CSS', 'Python', 'C++', 'Java', '汇编']],
+  ['前端', ['TypeScript', 'Vite', 'Vue', 'Astro']],
+  ['后端', ['Nginx', 'Node.js']]
+]
 
 // 右栏
 const WRITING_WEEKS = 20
@@ -141,6 +135,28 @@ const avatar = (await logo()).default
               <div><dd>{home.works.length}</dd><dt>作品</dt></div>
               <div><dd>{compact(home.tokens.total)}</dd><dt>AI tokens</dt></div>
             </dl>
+            <h2 class='side-h'>教育</h2>
+            <a class='edu' href='https://www.hnie.edu.cn/' target='_blank' rel='noopener'>
+              <img src='/images/HNIE.svg' alt='' aria-hidden='true' />
+              <b>湖南工程学院</b>
+              <span>软件工程</span>
+              <small>2024.09 – 至今</small>
+            </a>
+            <h2 class='side-h'>技能</h2>
+            <dl class='skills'>
+              {
+                SKILLS.map(([k, list]) => (
+                  <div>
+                    <dt>{k}</dt>
+                    <dd>
+                      {list.map((x) => (
+                        <span>{x}</span>
+                      ))}
+                    </dd>
+                  </div>
+                ))
+              }
+            </dl>
           </aside>
 
           <!-- ── 中：文章 ── -->
@@ -152,6 +168,7 @@ const avatar = (await logo()).default
                     type='button'
                     role='tab'
                     data-tab={t.key}
+                    title={t.note}
                     aria-selected={i === 0 ? 'true' : 'false'}
                   >
                     {t.label}
@@ -201,7 +218,7 @@ const avatar = (await logo()).default
             <div class='posts'>
               {
                 items.map(({ post, cat, date, minutes, by, image }) => (
-                  <article class='post' data-cat={cat}>
+                  <article class='post' data-cat={cat ?? ''}>
                     <Image class='who' src={avatar} alt='' width={72} />
                     <div class='main'>
                       <p class='meta'>
@@ -212,7 +229,7 @@ const avatar = (await logo()).default
                         >
                           {date}
                         </time>
-                        <span class='kind'>{TAB_NAME[cat]}</span>
+                        {cat && <span class='kind'>{categoryLabel(cat)}</span>}
                       </p>
                       <a class='body' href={`/blog/${post.id}/`} data-astro-prefetch>
                         <h2>{post.data.title}</h2>
@@ -235,7 +252,10 @@ const avatar = (await logo()).default
                 ))
               }
             </div>
-            <p class='end'><a href='/archives'>到底了。按年份看全部文章 →</a></p>
+            <div class='end'>
+              <Quote />
+              <p><a href='/archives'>到底了。按年份看全部文章 →</a></p>
+            </div>
           </main>
 
           <!-- ── 右栏 ── -->
@@ -518,6 +538,67 @@ const avatar = (await logo()).default
     font-size: 11px;
   }
 
+  .side-h {
+    margin: 22px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--h-line);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  /* 教育：和原首页一样，校徽淡淡地压在卡片右边 */
+  .edu {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    overflow: hidden;
+    padding: 12px 14px;
+    border: 1px solid var(--h-line);
+    border-radius: 10px;
+    background: var(--h-card);
+    font-size: 12px;
+  }
+  .edu img {
+    position: absolute;
+    top: -10%;
+    right: -18%;
+    width: 60%;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .edu b {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .edu span,
+  .edu small {
+    color: var(--h-muted);
+  }
+  .edu:hover b {
+    color: var(--h-accent);
+  }
+  .skills div + div {
+    margin-top: 8px;
+  }
+  .skills dt {
+    margin-bottom: 4px;
+    color: var(--h-muted);
+    font-size: 11px;
+  }
+  .skills dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .skills span {
+    padding: 0 7px;
+    border: 1px solid var(--h-line);
+    border-radius: 999px;
+    background: var(--h-card);
+    color: var(--h-ink-2);
+    font-size: 11.5px;
+    line-height: 20px;
+  }
+
   /* ── 中：文章 ── */
   .feed {
     min-height: 100vh;
@@ -687,10 +768,12 @@ const avatar = (await logo()).default
     color: var(--h-accent);
   }
   .end {
+    display: grid;
+    justify-items: center;
+    gap: 14px;
     padding: 28px 0 40px;
     color: var(--h-faint);
     font-size: 12px;
-    text-align: center;
   }
 
   /* ── 右栏 ── */

@@ -5,6 +5,7 @@ publishDate: 2025-11-16 14:39:37
 tags:
   - os
   - risc-v
+category: study
 ---
 
 ## 问题如下

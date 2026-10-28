@@ -11,6 +11,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: project
 ---
 
 [ui-motion-lab](https://lab.lzwcc.xyz/) 是我的作品站，Nuxt 4 加 Nuxt UI，静态导出。首页用 Lighthouse 跑出来性能是 69，FCP、LCP、CLS 都还可以，红的只有 Total Blocking Time，2140ms，也就是首次加载时主线程被长任务占住的时间。改完以后在无痕窗口里重新跑是 98。

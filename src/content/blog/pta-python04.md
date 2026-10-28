@@ -4,6 +4,7 @@ description: 'No desc'
 publishDate: 2026-04-21 20:56:50
 tags:
   - python
+category: study
 ---
 
 ## 第一题：单个身份证校验 - 实验 19 身份证校验 - 《Python编程基础及应用实验教程》 - 高牧尘

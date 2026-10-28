@@ -4,6 +4,7 @@ description: 'No desc'
 publishDate: 2026-03-31 22:27:30
 tags:
   - python
+category: study
 ---
 
 ## 第一题：互不相同的数，组成最大整数

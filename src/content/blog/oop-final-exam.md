@@ -7,6 +7,7 @@ tags:
   - Java
 
 draft: false
+category: study
 ---
 ---
 

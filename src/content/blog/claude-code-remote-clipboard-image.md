@@ -12,6 +12,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: tooling
 ---
 
 我在 Mac 上 ssh 到 VPS 跑 Claude Code（做法见[远程用 Claude Code：断线、滚动和多 agent](/blog/claude-code-remote-terminal/)）。剩下最不顺手的是贴图：Claude Code 贴图时读的是它所在机器的剪贴板，也就是 VPS 的，而截图在 Mac 上。之前只能用自己写的 `/clip` 命令一次传一张。

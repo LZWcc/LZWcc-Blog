@@ -12,6 +12,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: project
 ---
 
 我现在开发都是和 Claude 一起做，做完顺手让它写进博客。写[远程用 Claude Code](/blog/claude-code-remote-terminal/)那篇时，有几个问题反复出现：

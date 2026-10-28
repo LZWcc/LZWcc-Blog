@@ -5,6 +5,7 @@ publishDate: 2025-12-21 15:47:48
 tags:
   - Nginx
   - Astro
+category: tooling
 ---
 
 ## 第一步：本地构建静态文件

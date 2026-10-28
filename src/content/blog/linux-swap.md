@@ -4,6 +4,7 @@ description: '轻量云主机还是不太够用啊...'
 publishDate: 2025-12-24 22:19:32
 tags:
   - linux
+category: tooling
 ---
 ### 一、 为什么要开启 Swap？
 

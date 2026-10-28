@@ -13,6 +13,7 @@ draft: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 这篇记录一次线上 Go 服务的 OOM 排查（Go + Gin + GORM + PostgreSQL，Docker Compose 部署）。

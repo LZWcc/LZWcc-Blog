@@ -12,6 +12,7 @@ draft: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: postmortem
 ---
 
 这篇和前几篇 Claude Code 系列不太一样，讲的不是工具配置，而是一个越来越常见的场景：**几个人各自用 AI 编程工具开发同一个线上服务，而且每个人（以及每个人的 AI）都可能直接部署**。

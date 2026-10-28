@@ -5,6 +5,7 @@ publishDate: 2026-04-24 15:24:00
 tags:
   - Claude
   - AI
+category: tooling
 ---
 
 Claude Code 从 `1.0.61` 及以上版本开始支持原生 `--settings` 选项，可以通过额外的 settings JSON 文件切换不同的自定义模型供应商，例如 DeepSeek、Kimi、智谱 GLM，以及各种 Anthropic API 兼容中转站。

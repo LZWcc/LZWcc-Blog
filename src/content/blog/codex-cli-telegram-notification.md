@@ -12,6 +12,7 @@ comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
+category: tooling
 ---
 
 上一篇介绍了[服务器上的 Claude Code Telegram 通知方案](/blog/claude-code-telegram-notification/)。这次把 Mac 本机的 Codex CLI 也接入同一个 Telegram Bot。

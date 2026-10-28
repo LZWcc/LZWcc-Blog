@@ -6,6 +6,7 @@ tags:
   - Example
   - Technology
 draft: false
+category: study
 ---
 ## 课题：在线图书管理系统
 
