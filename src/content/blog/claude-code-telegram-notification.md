@@ -9,6 +9,9 @@ tags:
   - SSH
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 平时我会通过 SSH 在远程服务器上使用 Claude Code 进行开发。但有一个问题：Claude Code 完成任务后，我无法像使用本机 Codex CLI 一样及时收到系统通知，需要反复切回终端查看。

@@ -9,6 +9,9 @@ tags:
   - AI
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我的开发方式是：Claude Code 跑在服务器上，项目代码、依赖、构建和测试都在 Mac 上，Claude Code 通过 `ssh` 操作 Mac。Codex CLI 也装在这台 Mac 上，额度一直用不完。

@@ -10,6 +10,9 @@ tags:
   - 复盘
 language: zh
 draft: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 这篇记录我做的一个小功能：给画布上的视频节点加“截取当前帧/首帧/尾帧”，以及它上线后暴露出来的一个"看起来像前端 bug、其实是 HTTP 代理 bug"的问题。

@@ -10,6 +10,9 @@ tags:
   - 终端
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我平时在 Mac 上 `ssh lxc` 连到一台 VPS，在上面跑 Claude Code。用久了有两个地方一直不顺手：

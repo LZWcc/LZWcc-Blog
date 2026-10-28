@@ -8,6 +8,9 @@ tags:
   - 提示词
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我在抖音上看到一段关于 AI 协作的视频。里面提到：开发之前，先让 AI 整理产品需求文档，写清楚要解决的问题、成功标准、开发范围、限制条件和计划。有疑问先问，正式开发前获得明确许可。

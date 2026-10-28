@@ -9,6 +9,9 @@ tags:
   - 复盘
 language: zh
 draft: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 这篇是一次"画布存不上"问题的复盘，前后修了一周。

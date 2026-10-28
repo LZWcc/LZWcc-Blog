@@ -9,6 +9,9 @@ tags:
   - Mihomo
   - Shadowrocket
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 ## 要解决的问题

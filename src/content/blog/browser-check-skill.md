@@ -8,6 +8,9 @@ tags:
   - 性能
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我的 Claude Code 跑在一台远程 Linux 机器上，代码和浏览器都在我的 Mac 上。改前端时它看不到页面：外观对不对、深色模式有没有问题、动画卡不卡，都要我打开浏览器看完再告诉它。一来一回很慢，而且"有点卡"这种描述，它没法定位。

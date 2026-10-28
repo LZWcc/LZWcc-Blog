@@ -10,6 +10,9 @@ tags:
   - GitHub
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我同时用 Claude Code 和 Codex，分布在一台笔记本和两台服务器上。想知道一共用了多少 token、花在哪些模型上，并把它放到 GitHub 主页。Claude Code 默认还会删除 30 天前的会话日志，不及时收集就没了。
