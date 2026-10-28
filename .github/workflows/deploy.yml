@@ -1,6 +1,8 @@
 name: Deploy Blog
 
 on:
+  # 手动触发：作品站发布后要让博客右栏读到新的 home.json 时用（gh workflow run deploy.yml，或在 Actions 页面点 Run workflow）
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
