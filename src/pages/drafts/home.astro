@@ -2,12 +2,12 @@
 // 首页草稿（homepage-feed 分支）：照 ui-motion-lab 标签 homepage-feed-v1 的信息流三栏版。
 //   左边个人资料（颗粒渐变横幅），中间每篇文章是一条动态（置顶一段自我介绍，可以按类别筛选），
 //   右边写作记录、作品站最新作品、常用的工具、AI 用量、GitHub。
-// 配色用作品站的 --h-* 变量（只在这一页），顶栏也是这一页自己的；页脚用博客主题的。
+// 配色用作品站的 --h-* 变量（只在这一页）；顶栏和页脚用博客主题的，主题的颜色变量在这一页换成作品站的配色。
 // 作品站的数据来自 lab.lzwcc.xyz/home.json（src/utils/home-data.ts）。定下来以后替换 src/pages/index.astro。
 import { Image } from 'astro:assets'
 import { render } from 'astro:content'
 
-import { Footer, ThemeProvider } from 'astro-pure/components/basic'
+import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import { getBlogCollection, getUniqueTagsWithCount, sortMDByDate } from 'astro-pure/server'
 import { Icon } from 'astro-pure/user'
 import BaseHead from '@/components/BaseHead.astro'
@@ -111,212 +111,195 @@ const avatar = (await logo()).default
   </head>
   <body class='home-page'>
     <div class='page'>
-      <header class='bar'>
-        <a class='mark' href='/'>LZWcc</a>
-        <nav>
-          <a href='/blog'>文章</a>
-          <a href='/archives'>归档</a>
-          <a href='/links'>友链</a>
-          <a href='/about'>关于</a>
-          <a href={LAB}>作品站</a>
-          <a href='/search' title='搜索'><Icon name='search' class='size-4' /></a>
-          <button type='button' id='theme' title='切换深浅色'
-            ><Icon name='sun' class='size-4 sun' /><Icon name='moon' class='size-4 moon' /></button
-          >
-        </nav>
-      </header>
+      <div class='inner'>
+        <Header />
 
-      <div class='layout'>
-        <!-- ── 左：个人资料 ── -->
-        <aside class='profile'>
-          <div class='banner'><Image src={banner} alt='' loading='eager' /></div>
-          <Image class='face' src={avatar} alt='LZWcc 的头像' width={152} loading='eager' />
-          <h1>LZWcc</h1>
-          <p class='handle'>软件工程 · 湖南工程学院</p>
-          <p class='status'><i></i>正在找前端开发的工作</p>
-          <p class='bio'>
-            你好，我叫 LZWcc，是一个软件工程专业的本科生。这里记开发过程和学习笔记，做出来的东西放在<a
-              href={LAB}>作品站</a
-            >。
-          </p>
-          <nav class='links'>
-            <a href='https://github.com/LZWcc' target='_blank' rel='noopener'
-              ><Icon name='github' />GitHub</a
-            >
-            <a href={LAB}><Icon name='link' />作品站</a>
-            <a href='/rss.xml'><Icon name='rss' />RSS</a>
-          </nav>
-          <dl class='numbers'>
-            <div><dd>{posts.length}</dd><dt>文章</dt></div>
-            <div><dd>{tags.length}</dd><dt>标签</dt></div>
-            <div><dd>{home.works.length}</dd><dt>作品</dt></div>
-            <div><dd>{compact(home.tokens.total)}</dd><dt>AI tokens</dt></div>
-          </dl>
-        </aside>
+        <div class='layout'>
+          <!-- ── 左：个人资料 ── -->
+          <aside class='profile'>
+            <div class='banner'><Image src={banner} alt='' loading='eager' /></div>
+            <Image class='face' src={avatar} alt='LZWcc 的头像' width={152} loading='eager' />
+            <h1>LZWcc</h1>
+            <p class='handle'>软件工程 · 湖南工程学院</p>
+            <p class='status'><i></i>正在找前端开发的工作</p>
+            <p class='bio'>
+              你好，我叫
+              LZWcc，是一个软件工程专业的本科生。这里记开发过程和学习笔记，做出来的东西放在<a
+                href={LAB}>作品站</a
+              >。
+            </p>
+            <nav class='links'>
+              <a href='https://github.com/LZWcc' target='_blank' rel='noopener'
+                ><Icon name='github' />GitHub</a
+              >
+              <a href={LAB}><Icon name='link' />作品站</a>
+              <a href='/rss.xml'><Icon name='rss' />RSS</a>
+            </nav>
+            <dl class='numbers'>
+              <div><dd>{posts.length}</dd><dt>文章</dt></div>
+              <div><dd>{tags.length}</dd><dt>标签</dt></div>
+              <div><dd>{home.works.length}</dd><dt>作品</dt></div>
+              <div><dd>{compact(home.tokens.total)}</dd><dt>AI tokens</dt></div>
+            </dl>
+          </aside>
 
-        <!-- ── 中：文章 ── -->
-        <main class='feed'>
-          <div class='tabs' role='tablist'>
-            {
-              TABS.map((t, i) => (
-                <button
-                  type='button'
-                  role='tab'
-                  data-tab={t.key}
-                  aria-selected={i === 0 ? 'true' : 'false'}
-                >
-                  {t.label}
-                  <span>{count(t.key)}</span>
-                </button>
-              ))
-            }
-          </div>
-
-          <article class='post pinned'>
-            <Image class='who' src={avatar} alt='' width={72} />
-            <div class='main'>
-              <p class='meta'><b>LZWcc</b><span class='pin'>置顶</span></p>
-              <details>
-                <summary>
-                  <span class='text'
-                    >你好，我叫 LZWcc，是一个软件工程专业的本科生。<del>目前正在学习前端开发。</del
-                    ></span
-                  >
-                  <span class='more'>展开</span>
-                </summary>
-                <p>
-                  每天都用 AI 写代码完成作业做 PPT，用 AI 写代码，用 AI 优化 AI 写的代码， 用 AI 给
-                  AI 优化过的代码继续加注释、补报告、编思路，同时威胁 AI 写出来的代码不要像 AI
-                  写的代码。换一个 AI 去检查我用 AI 写的代码是不是太像 AI 写的，结果显示 AI
-                  味太重了，于是我用 AI 降低 AI 写的这份代码的 AI 味，最后再拿 AI 来检测。
-                </p>
-                <p>
-                  我用 AI 降完后的 AI 味很低，终于可以提交 AI 作业了。然后平台用 AI 审核我用 AI
-                  写的作业，给我一堆 AI 的修改建议，然后我用 AI 根据它的 AI 建议，继续用 AI 修改我用
-                  AI 写的代码。
-                </p>
-                <p>
-                  最后让 AI 拿着 AI 写的反馈和我用 AI 修改后的 AI 作业，用 AI
-                  写一份实验报告和提交说明。最后 AI 练习并强化了软件工程能力。
-                </p>
-                <p>
-                  学期结束，AI
-                  熟练掌握了我的专业课内容、代码风格和答辩话术。而我，熟练掌握了复制、粘贴、追问和假装自己懂了。
-                </p>
-                <a class='about' href='/about'>更多关于我 →</a>
-              </details>
-            </div>
-          </article>
-
-          <div class='posts'>
-            {
-              items.map(({ post, cat, date, minutes, by, image }) => (
-                <article class='post' data-cat={cat}>
-                  <Image class='who' src={avatar} alt='' width={72} />
-                  <div class='main'>
-                    <p class='meta'>
-                      <b>LZWcc</b>
-                      <span>·</span>
-                      <time
-                        datetime={(post.data.updatedDate ?? post.data.publishDate).toISOString()}
-                      >
-                        {date}
-                      </time>
-                      <span class='kind'>{TAB_NAME[cat]}</span>
-                    </p>
-                    <a class='body' href={`/blog/${post.id}/`} data-astro-prefetch>
-                      <h2>{post.data.title}</h2>
-                      <p class='text'>{post.data.description}</p>
-                      {image && (
-                        <span class='media'>
-                          <Image src={image} alt='' width={720} loading='lazy' />
-                        </span>
-                      )}
-                    </a>
-                    <p class='foot'>
-                      <span>{minutes}</span>
-                      {post.data.tags.slice(0, 4).map((t) => (
-                        <a href={`/tags/${t}`}>#{t}</a>
-                      ))}
-                      {by && <span class='by'>{by}</span>}
-                    </p>
-                  </div>
-                </article>
-              ))
-            }
-          </div>
-          <p class='end'><a href='/archives'>到底了。按年份看全部文章 →</a></p>
-        </main>
-
-        <!-- ── 右栏 ── -->
-        <aside class='rail'>
-          <section>
-            <h2>写作记录</h2>
-            <p class='sum'><b>{writingTotal}</b> 篇 · 最近 {WRITING_WEEKS} 周</p>
-            <Heatmap days={writing} weeks={WRITING_WEEKS} unit='篇' />
-          </section>
-          <section>
-            <h2>作品站</h2>
-            <ul class='works'>
+          <!-- ── 中：文章 ── -->
+          <main class='feed'>
+            <div class='tabs' role='tablist'>
               {
-                works.map((w) => (
-                  <li>
-                    <a href={`${LAB}${w.path}`}>
-                      {w.cover && (
-                        <img
-                          src={`${LAB}${w.cover}`}
-                          alt=''
-                          width='72'
-                          height='45'
-                          loading='lazy'
-                        />
-                      )}
-                      <span>
-                        <small>No.{w.no}</small>
-                        {w.short ?? w.title}
-                      </span>
-                    </a>
-                  </li>
+                TABS.map((t, i) => (
+                  <button
+                    type='button'
+                    role='tab'
+                    data-tab={t.key}
+                    aria-selected={i === 0 ? 'true' : 'false'}
+                  >
+                    {t.label}
+                    <span>{count(t.key)}</span>
+                  </button>
                 ))
               }
-            </ul>
-            <a class='all' href={`${LAB}/works`}>全部 {home.works.length} 件作品 →</a>
-          </section>
-          <section>
-            <h2>常用的工具</h2>
-            <TechStack stack={home.stack} />
-          </section>
-          <section>
-            <h2>AI 用量</h2>
-            <TokenUsage tokens={home.tokens} />
-          </section>
-          <section>
-            <h2>GitHub</h2>
-            <p class='sum'><b>{githubTotal.toLocaleString()}</b> 次贡献 · 最近 {githubWeeks} 周</p>
-            <Heatmap days={githubDays} weeks={githubWeeks} unit='次贡献' />
-            <a
-              class='all'
-              href={`https://github.com/${home.github.user}`}
-              target='_blank'
-              rel='noopener'>去 GitHub 看看 ↗</a
-            >
-          </section>
-        </aside>
+            </div>
+
+            <article class='post pinned'>
+              <Image class='who' src={avatar} alt='' width={72} />
+              <div class='main'>
+                <p class='meta'><b>LZWcc</b><span class='pin'>置顶</span></p>
+                <details>
+                  <summary>
+                    <span class='text'
+                      >你好，我叫 LZWcc，是一个软件工程专业的本科生。<del
+                        >目前正在学习前端开发。</del
+                      ></span
+                    >
+                    <span class='more'>展开</span>
+                  </summary>
+                  <p>
+                    每天都用 AI 写代码完成作业做 PPT，用 AI 写代码，用 AI 优化 AI 写的代码， 用 AI
+                    给 AI 优化过的代码继续加注释、补报告、编思路，同时威胁 AI 写出来的代码不要像 AI
+                    写的代码。换一个 AI 去检查我用 AI 写的代码是不是太像 AI 写的，结果显示 AI
+                    味太重了，于是我用 AI 降低 AI 写的这份代码的 AI 味，最后再拿 AI 来检测。
+                  </p>
+                  <p>
+                    我用 AI 降完后的 AI 味很低，终于可以提交 AI 作业了。然后平台用 AI 审核我用 AI
+                    写的作业，给我一堆 AI 的修改建议，然后我用 AI 根据它的 AI 建议，继续用 AI
+                    修改我用 AI 写的代码。
+                  </p>
+                  <p>
+                    最后让 AI 拿着 AI 写的反馈和我用 AI 修改后的 AI 作业，用 AI
+                    写一份实验报告和提交说明。最后 AI 练习并强化了软件工程能力。
+                  </p>
+                  <p>
+                    学期结束，AI
+                    熟练掌握了我的专业课内容、代码风格和答辩话术。而我，熟练掌握了复制、粘贴、追问和假装自己懂了。
+                  </p>
+                  <a class='about' href='/about'>更多关于我 →</a>
+                </details>
+              </div>
+            </article>
+
+            <div class='posts'>
+              {
+                items.map(({ post, cat, date, minutes, by, image }) => (
+                  <article class='post' data-cat={cat}>
+                    <Image class='who' src={avatar} alt='' width={72} />
+                    <div class='main'>
+                      <p class='meta'>
+                        <b>LZWcc</b>
+                        <span>·</span>
+                        <time
+                          datetime={(post.data.updatedDate ?? post.data.publishDate).toISOString()}
+                        >
+                          {date}
+                        </time>
+                        <span class='kind'>{TAB_NAME[cat]}</span>
+                      </p>
+                      <a class='body' href={`/blog/${post.id}/`} data-astro-prefetch>
+                        <h2>{post.data.title}</h2>
+                        <p class='text'>{post.data.description}</p>
+                        {image && (
+                          <span class='media'>
+                            <Image src={image} alt='' width={720} loading='lazy' />
+                          </span>
+                        )}
+                      </a>
+                      <p class='foot'>
+                        <span>{minutes}</span>
+                        {post.data.tags.slice(0, 4).map((t) => (
+                          <a href={`/tags/${t}`}>#{t}</a>
+                        ))}
+                        {by && <span class='by'>{by}</span>}
+                      </p>
+                    </div>
+                  </article>
+                ))
+              }
+            </div>
+            <p class='end'><a href='/archives'>到底了。按年份看全部文章 →</a></p>
+          </main>
+
+          <!-- ── 右栏 ── -->
+          <aside class='rail'>
+            <section>
+              <h2>写作记录</h2>
+              <p class='sum'><b>{writingTotal}</b> 篇 · 最近 {WRITING_WEEKS} 周</p>
+              <Heatmap days={writing} weeks={WRITING_WEEKS} unit='篇' />
+            </section>
+            <section>
+              <h2>作品站</h2>
+              <ul class='works'>
+                {
+                  works.map((w) => (
+                    <li>
+                      <a href={`${LAB}${w.path}`}>
+                        {w.cover && (
+                          <img
+                            src={`${LAB}${w.cover}`}
+                            alt=''
+                            width='72'
+                            height='45'
+                            loading='lazy'
+                          />
+                        )}
+                        <span>
+                          <small>No.{w.no}</small>
+                          {w.short ?? w.title}
+                        </span>
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+              <a class='all' href={`${LAB}/works`}>全部 {home.works.length} 件作品 →</a>
+            </section>
+            <section>
+              <h2>常用的工具</h2>
+              <TechStack stack={home.stack} />
+            </section>
+            <section>
+              <h2>AI 用量</h2>
+              <TokenUsage tokens={home.tokens} />
+            </section>
+            <section>
+              <h2>GitHub</h2>
+              <p class='sum'>
+                <b>{githubTotal.toLocaleString()}</b> 次贡献 · 最近 {githubWeeks} 周
+              </p>
+              <Heatmap days={githubDays} weeks={githubWeeks} unit='次贡献' />
+              <a
+                class='all'
+                href={`https://github.com/${home.github.user}`}
+                target='_blank'
+                rel='noopener'>去 GitHub 看看 ↗</a
+              >
+            </section>
+          </aside>
+        </div>
       </div>
     </div>
     <div class='foot-wrap'><Footer /></div>
 
     <script>
-      // 深浅色切换：和主题的 setTheme 做的一样（存 localStorage.theme、切 .dark、改 theme-color），其他页面读得到。
-      // 不直接 import astro-pure/utils：它连带引入的 date.ts 依赖 virtual:config，浏览器端打包会失败
-      document.getElementById('theme')!.addEventListener('click', () => {
-        const dark = !document.documentElement.classList.contains('dark')
-        localStorage.setItem('theme', dark ? 'dark' : 'light')
-        document.documentElement.classList.toggle('dark', dark)
-        document
-          .querySelector('meta[name="theme-color"]')
-          ?.setAttribute('content', dark ? '#0B0B10' : '#FCFCFD')
-      })
       // 中间一栏按类别筛选：没有 JS 时显示全部
       const tabs = document.querySelectorAll<HTMLButtonElement>('.tabs button')
       const rows = document.querySelectorAll<HTMLElement>('.posts .post')
@@ -327,6 +310,13 @@ const avatar = (await logo()).default
           rows.forEach((row) => (row.hidden = key !== 'all' && row.dataset.cat !== key))
         })
       )
+      // 左右两栏学推特：比屏幕矮就停在顶栏下面；比屏幕高就先跟着页面滚，底部露出来以后停住。
+      // 停的位置在样式里算（.profile, .rail 的 top），这里只把栏的高度交给它
+      const asides = document.querySelectorAll<HTMLElement>('.profile, .rail')
+      const measure = () =>
+        asides.forEach((el) => el.style.setProperty('--h', `${el.offsetHeight}px`))
+      const resize = new ResizeObserver(measure)
+      asides.forEach((el) => resize.observe(el))
     </script>
   </body>
 </html>
@@ -360,6 +350,13 @@ const avatar = (await logo()).default
     --h-plate-shadow: rgb(0 0 0 / 9%);
     --h-engrave: #f0f0f0;
     --h-engrave-ink: #9a9a9a;
+    /* 博客主题的颜色变量换成作品站的配色：主题的顶栏、页脚跟着变 */
+    --background: 0 0% 96.5%;
+    --foreground: 0 0% 11.4%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 35%;
+    --border: 0 0% 89%;
+    --primary: 227 100% 59%;
     background: var(--h-bg);
     color: var(--h-ink);
     font-family: 'PingFang SC', system-ui, sans-serif;
@@ -391,6 +388,16 @@ const avatar = (await logo()).default
     --h-plate-shadow: rgb(0 0 0 / 45%);
     --h-engrave: #1f1f22;
     --h-engrave-ink: #6e6e74;
+    --background: 240 3% 5.7%;
+    --foreground: 0 0% 93%;
+    --muted: 240 4% 10%;
+    --muted-foreground: 240 2.5% 65%;
+    --border: 240 3% 17%;
+    --primary: 227 100% 72%;
+  }
+  /* 主题顶栏往下滚会藏起来（data-show=false），藏起来时下面吸顶的东西往上收 */
+  .home-page:has(header-component[data-show='false']:not(.expanded)) .page {
+    --head: 0px;
   }
 </style>
 
@@ -398,62 +405,27 @@ const avatar = (await logo()).default
   .page {
     --mono: 'SF Mono', ui-monospace, Menlo, monospace;
     --w: 1240px;
+    --head: 76px; /* 主题顶栏（sticky top-4）露出来时占的高度 */
     min-height: 100vh;
     padding: 0 32px 64px;
   }
-  .bar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .inner {
     max-width: var(--w);
-    height: 60px;
     margin: 0 auto;
-    border-bottom: 1px solid var(--h-line);
-    background: var(--h-bg);
-    font-size: 13px;
-  }
-  .mark {
-    font-family: var(--mono);
-    font-weight: 600;
-  }
-  .bar nav {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    color: var(--h-muted);
-  }
-  .bar nav a:hover,
-  .bar button:hover {
-    color: var(--h-ink);
-  }
-  .bar button {
-    display: grid;
-    color: var(--h-muted);
-  }
-  .bar .moon,
-  :global(.dark) .bar .sun {
-    display: none;
-  }
-  :global(.dark) .bar .moon {
-    display: block;
   }
   .layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr) 330px;
     align-items: start;
     gap: 40px;
-    max-width: var(--w);
-    margin: 0 auto;
   }
 
   /* ── 左：个人资料 ── */
-  .profile {
+  .profile,
+  .rail {
     position: sticky;
-    top: 84px;
-    padding-top: 24px;
+    top: min(calc(var(--head) + 16px), calc(100vh - var(--h, 0px) - 16px));
+    transition: top 0.3s;
   }
   .banner {
     height: 92px;
@@ -553,7 +525,8 @@ const avatar = (await logo()).default
   }
   .tabs {
     position: sticky;
-    top: 60px;
+    top: var(--head);
+    transition: top 0.3s;
     z-index: 10;
     display: flex;
     border-bottom: 1px solid var(--h-line);
@@ -724,7 +697,6 @@ const avatar = (await logo()).default
   .rail {
     display: grid;
     gap: 30px;
-    padding-top: 24px;
   }
   .rail h2 {
     margin-bottom: 12px;
@@ -796,11 +768,8 @@ const avatar = (await logo()).default
     .page {
       padding: 0 0 48px;
     }
-    .bar {
-      padding: 0 16px;
-    }
-    .bar nav {
-      gap: 14px;
+    .inner > :global(header-component) {
+      margin-inline: 16px;
     }
     .layout {
       grid-template-columns: minmax(0, 1fr);
