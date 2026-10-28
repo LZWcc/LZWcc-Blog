@@ -5,6 +5,7 @@ import { Image } from 'astro:assets'
 import type { InferEntrySchema } from 'astro:content'
 
 import { FormattedDate, Icon } from 'astro-pure/user'
+import { authorshipLabel as toLabel } from '@/utils/authorship'
 
 interface Props {
   data: InferEntrySchema<'blog'>
@@ -12,7 +13,17 @@ interface Props {
 }
 
 const {
-  data: { title, description, draft, heroImage, publishDate, updatedDate, tags, language, authorship },
+  data: {
+    title,
+    description,
+    draft,
+    heroImage,
+    publishDate,
+    updatedDate,
+    tags,
+    language,
+    authorship
+  },
   remarkPluginFrontmatter
 } = Astro.props
 
@@ -20,12 +31,7 @@ const dateTimeOptions: Intl.DateTimeFormatOptions = {
   month: 'short'
 }
 
-// 署名：手写 / AI 协助：模型 / AI 生成：模型
-const authorshipLabel = authorship
-  ? authorship.mode === 'human'
-    ? '手写'
-    : `${authorship.mode === 'assisted' ? 'AI 协助' : 'AI 生成'}：${authorship.models.join('、')}`
-  : undefined
+const authorshipLabel = toLabel(authorship)
 ---
 
 {

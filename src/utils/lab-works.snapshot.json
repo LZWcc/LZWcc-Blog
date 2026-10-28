@@ -1,0 +1,74 @@
+[
+  {
+    "path": "/ui/shiro-header-nav",
+    "title": "Shiro 的顶部导航",
+    "short": null,
+    "cover": "/images/covers/shiro.webp",
+    "date": "2026-10-27",
+    "type": "ui",
+    "no": "005"
+  },
+  {
+    "path": "/ui/grain-gradient-cover",
+    "title": "颗粒渐变封面",
+    "short": null,
+    "cover": "/images/covers/grain.jpg",
+    "date": "2026-10-24",
+    "type": "ui",
+    "no": "004"
+  },
+  {
+    "path": "/project/token-stats",
+    "title": "token-stats：汇总几台机器的 AI 编程用量",
+    "short": "token-stats",
+    "cover": "/images/covers/token-stats.webp",
+    "date": "2026-10-23",
+    "type": "project",
+    "no": "P03"
+  },
+  {
+    "path": "/project/niwa",
+    "title": "Niwa：一方安静的新标签页",
+    "short": "Niwa",
+    "cover": "/images/covers/niwa.webp",
+    "date": "2026-10-19",
+    "type": "project",
+    "no": "P02"
+  },
+  {
+    "path": "/animation/claude-micro-interactions",
+    "title": "Claude 风格的文字显现与输入框交互",
+    "short": "Claude 风格微交互",
+    "cover": "/images/covers/claude.webp",
+    "date": "2026-10-14",
+    "type": "animation",
+    "no": "003"
+  },
+  {
+    "path": "/animation/dither-ripple-avatar",
+    "title": "抖动像素波纹头像",
+    "short": "像素波纹头像",
+    "cover": "/images/covers/avatar.webp",
+    "date": "2026-10-08",
+    "type": "animation",
+    "no": "002"
+  },
+  {
+    "path": "/ui/paper-scroll",
+    "title": "纸张滚动效果",
+    "short": "纸张滚动",
+    "cover": "/images/covers/paper.webp",
+    "date": "2026-10-05",
+    "type": "ui",
+    "no": "001"
+  },
+  {
+    "path": "/project/maintpilot",
+    "title": "MaintPilot：设备检修 AI 诊断系统",
+    "short": "MaintPilot",
+    "cover": "/images/covers/maintpilot.webp",
+    "date": "2026-05-22",
+    "type": "project",
+    "no": "P01"
+  }
+]
