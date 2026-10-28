@@ -70,11 +70,13 @@ const TABS: { key: Tab; label: string; note?: string }[] = [
 const count = (key: Tab) =>
   key === 'all' ? items.length : items.filter((i) => i.cat === key).length
 
-// 左栏的技能（原首页的 Skills）
+// 左栏的技能：原首页的 Skills，按作品站技术栈卡片（ui-motion-lab 的 app/data/stack.ts）、项目文章的 stack
+// 和博客文章的标签补全（2026-10）。MaintPilot 的后端（PostgreSQL、pgvector）是同学做的，不算在内
 const SKILLS: [string, string[]][] = [
-  ['语言', ['HTML', 'JavaScript', 'CSS', 'Python', 'C++', 'Java', '汇编']],
-  ['前端', ['TypeScript', 'Vite', 'Vue', 'Astro']],
-  ['后端', ['Nginx', 'Node.js']]
+  ['语言', ['TypeScript', 'JavaScript', 'HTML / CSS', 'Python', 'Go', 'Java', 'C++', '汇编']],
+  ['前端', ['Vue', 'React', 'Nuxt', 'Astro', 'Tailwind CSS', 'Sass', 'Pinia', 'Vite', 'Electron', 'WXT']],
+  ['后端', ['Node.js', 'Fastify', 'MySQL', 'SQLite', 'Supabase', 'Nginx', 'Docker', 'Vercel']],
+  ['工具', ['Git', 'GitHub Actions', 'pnpm', 'Vitest', 'Figma', 'Linux', 'Claude Code', 'Codex']]
 ]
 
 // 右栏
