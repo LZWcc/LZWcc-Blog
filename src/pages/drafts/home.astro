@@ -10,7 +10,7 @@ import { render } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import { getBlogCollection, getUniqueTagsWithCount, sortMDByDate } from 'astro-pure/server'
-import { Icon } from 'astro-pure/user'
+import { Card, Icon } from 'astro-pure/user'
 import BaseHead from '@/components/BaseHead.astro'
 import Heatmap from '@/components/feed/Heatmap.astro'
 import TechStack from '@/components/feed/TechStack.astro'
@@ -102,8 +102,13 @@ const avatar = (await logo()).default
     <BaseHead title='Home' description={config.description} />
     <meta name='robots' content='noindex' />
     <ThemeProvider />
+    <script is:inline>
+      if (new URLSearchParams(location.search).get('palette') === 'lab')
+        document.documentElement.classList.add('palette-lab')
+    </script>
   </head>
   <body class='home-page'>
+    <div class='glow' aria-hidden='true'></div>
     <div class='page'>
       <div class='inner'>
         <Header />
@@ -136,12 +141,21 @@ const avatar = (await logo()).default
               <div><dd>{compact(home.tokens.total)}</dd><dt>AI tokens</dt></div>
             </dl>
             <h2 class='side-h'>教育</h2>
-            <a class='edu' href='https://www.hnie.edu.cn/' target='_blank' rel='noopener'>
-              <img src='/images/HNIE.svg' alt='' aria-hidden='true' />
-              <b>湖南工程学院</b>
-              <span>软件工程</span>
-              <small>2024.09 – 至今</small>
-            </a>
+            <Card
+              as='a'
+              class='edu'
+              heading='湖南工程学院'
+              subheading='软件工程'
+              date='2024.09 – 至今'
+              href='https://www.hnie.edu.cn/'
+            >
+              <img
+                class='absolute end-0 z-0 m-0 -my-3 h-full w-1/2 object-cover opacity-40'
+                src='/images/HNIE.svg'
+                alt=''
+                aria-hidden='true'
+              />
+            </Card>
             <h2 class='side-h'>技能</h2>
             <dl class='skills'>
               {
@@ -353,13 +367,14 @@ const avatar = (await logo()).default
     --h-ink-3: #5a5a5a;
     --h-muted: #8a8a8a;
     --h-faint: #a8a8a8;
-    --h-empty: #e4e4e4;
-    --h-accent: #2f5bff;
-    --h-accent-rgb: 47 91 255;
-    --h-heat-1: #c7d3ff;
-    --h-heat-2: #8fa7ff;
-    --h-heat-3: #5779ff;
-    --h-heat-4: #2f5bff;
+    --h-empty: rgb(0 0 0 / 7%); /* 半透明：底色带了淡蓝渐变，实色的浅灰会看不见 */
+    /* 强调色和热力图用旧博客的青蓝（主题 --primary: 200 29% 45%，顶部渐变 #659EB9） */
+    --h-accent: #518197;
+    --h-accent-rgb: 81 129 151;
+    --h-heat-1: #cfe3ec;
+    --h-heat-2: #9cc4d6;
+    --h-heat-3: #659eb9;
+    --h-heat-4: #3f7590;
     --h-plate-top: #ffffff;
     --h-plate-bottom: #f2f2f2;
     --h-plate-hi: #ffffff;
@@ -376,7 +391,7 @@ const avatar = (await logo()).default
     --muted: 0 0% 93%;
     --muted-foreground: 0 0% 35%;
     --border: 0 0% 89%;
-    --primary: 227 100% 59%;
+    --primary: 200 29% 45%;
     background: var(--h-bg);
     color: var(--h-ink);
     font-family: 'PingFang SC', system-ui, sans-serif;
@@ -392,12 +407,12 @@ const avatar = (await logo()).default
     --h-muted: #8b8b90;
     --h-faint: #5e5e63;
     --h-empty: #232326;
-    --h-accent: #6f8dff;
-    --h-accent-rgb: 111 141 255;
-    --h-heat-1: #1d2852;
-    --h-heat-2: #2c3f99;
-    --h-heat-3: #4466f0;
-    --h-heat-4: #8aa2ff;
+    --h-accent: #8fd3ec;
+    --h-accent-rgb: 143 211 236;
+    --h-heat-1: #16303b;
+    --h-heat-2: #23566b;
+    --h-heat-3: #3a87a6;
+    --h-heat-4: #7cc6e3;
     --h-plate-top: #2e2e32;
     --h-plate-bottom: #232326;
     --h-plate-hi: rgb(255 255 255 / 10%);
@@ -413,7 +428,43 @@ const avatar = (await logo()).default
     --muted: 240 4% 10%;
     --muted-foreground: 240 2.5% 65%;
     --border: 240 3% 17%;
+    --primary: 195 95% 85%;
+  }
+  /* ?palette=lab：作品站原来的亮蓝，方便和融合版对比（草稿阶段用） */
+  .palette-lab .home-page {
+    --h-empty: #e4e4e4;
+    --h-accent: #2f5bff;
+    --h-accent-rgb: 47 91 255;
+    --h-heat-1: #c7d3ff;
+    --h-heat-2: #8fa7ff;
+    --h-heat-3: #5779ff;
+    --h-heat-4: #2f5bff;
+    --primary: 227 100% 59%;
+  }
+  .dark.palette-lab .home-page {
+    --h-accent: #6f8dff;
+    --h-accent-rgb: 111 141 255;
+    --h-heat-1: #1d2852;
+    --h-heat-2: #2c3f99;
+    --h-heat-3: #4466f0;
+    --h-heat-4: #8aa2ff;
     --primary: 227 100% 72%;
+  }
+  /* 顶部那层淡蓝渐变，和博客其他页面（BaseLayout 的 highlightColor）一样 */
+  .home-page .glow {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 0;
+    height: 100vh;
+    background-image: linear-gradient(#659eb9, transparent);
+    opacity: 0.25;
+    pointer-events: none;
+  }
+  .palette-lab .home-page .glow {
+    display: none;
+  }
+  .home-page .page {
+    position: relative;
   }
   /* 主题顶栏往下滚会藏起来（data-show=false），藏起来时下面吸顶的东西往上收 */
   .home-page:has(header-component[data-show='false']:not(.expanded)) .page {
@@ -545,36 +596,16 @@ const avatar = (await logo()).default
     font-size: 13px;
     font-weight: 600;
   }
-  /* 教育：和原首页一样，校徽淡淡地压在卡片右边 */
-  .edu {
-    position: relative;
-    display: grid;
-    gap: 2px;
+  /* 教育：主题的 Card（和原首页一样），窄栏里字号收小一点 */
+  .profile :global(.edu) {
     overflow: hidden;
-    padding: 12px 14px;
-    border: 1px solid var(--h-line);
-    border-radius: 10px;
-    background: var(--h-card);
+    padding: 10px 14px;
+  }
+  .profile :global(.edu h2) {
+    font-size: 15px;
+  }
+  .profile :global(.edu p) {
     font-size: 12px;
-  }
-  .edu img {
-    position: absolute;
-    top: -10%;
-    right: -18%;
-    width: 60%;
-    opacity: 0.35;
-    pointer-events: none;
-  }
-  .edu b {
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .edu span,
-  .edu small {
-    color: var(--h-muted);
-  }
-  .edu:hover b {
-    color: var(--h-accent);
   }
   .skills div + div {
     margin-top: 8px;
@@ -611,7 +642,9 @@ const avatar = (await logo()).default
     z-index: 10;
     display: flex;
     border-bottom: 1px solid var(--h-line);
-    background: var(--h-bg);
+    /* 半透明加模糊：顶部的淡蓝渐变能透出来，不像一块实心的灰 */
+    background: color-mix(in srgb, var(--h-bg) 78%, transparent);
+    backdrop-filter: blur(10px);
   }
   .tabs button {
     position: relative;
