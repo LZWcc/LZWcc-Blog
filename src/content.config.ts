@@ -35,6 +35,16 @@ const blog = defineCollection({
       tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
       language: z.string().optional(),
       draft: z.boolean().default(false),
+      // 谁写的，显示在文章顶部：手写 / AI 协助 / AI 生成；后两种在 models 里写模型名，多个按参与多少排
+      authorship: z
+        .object({
+          mode: z.enum(['human', 'assisted', 'generated']),
+          models: z.array(z.string()).default([])
+        })
+        .refine((a) => a.mode === 'human' || a.models.length > 0, {
+          message: 'AI 协助或 AI 生成时要写 models'
+        })
+        .optional(),
       // Special fields
       comment: z.boolean().default(true)
     })
