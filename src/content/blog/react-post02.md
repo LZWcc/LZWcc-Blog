@@ -1,6 +1,6 @@
 ---
 title: （二）路由导航和路由嵌套
-description: 'No description'
+description: 'React Router 系列第二篇：用 useNavigate 跳转页面，用没有 path 的布局路由加 <Outlet /> 做嵌套路由。'
 publishDate: 2026-02-12 02:32:57
 tags:
   - React

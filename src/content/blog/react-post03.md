@@ -1,6 +1,6 @@
 ---
 title: （三）动态路由及SearchParams
-description: 'No description'
+description: 'React Router 系列第三篇：用动态段从地址里取参数，用 useSearchParams 读写查询参数，最后把输入框和查询参数双向绑定。'
 publishDate: 2026-02-12 02:34:08
 tags:
   - React

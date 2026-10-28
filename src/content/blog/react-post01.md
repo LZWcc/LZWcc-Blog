@@ -1,6 +1,6 @@
 ---
 title: （一）初识React Router
-description: 'No description'
+description: 'React Router 系列第一篇：安装 v7，用 createBrowserRouter 和 RouterProvider 配置路由，以及 element 和 Component 两种写法的区别。'
 publishDate: 2026-02-12 02:31:13
 tags:
   - React
