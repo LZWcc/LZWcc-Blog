@@ -9,6 +9,9 @@ tags:
   - 博客
 draft: false
 comment: false
+authorship:
+  mode: generated
+  models: [Claude Opus 5.5]
 ---
 
 我现在开发都是和 Claude 一起做，做完顺手让它写进博客。写[远程用 Claude Code](/blog/claude-code-remote-terminal/)那篇时，有几个问题反复出现：
@@ -70,13 +73,15 @@ description: 把做完的开发工作写成用户博客（Mac 上的 LZWcc-Blog�
 
 博客仓库在 Mac 的 `/Users/lzwcc/Documents/Code/LZWcc-Blog`（Astro），文章放在 `src/content/blog/<slug>.md`。读写都通过 `ssh lzwcc`，改文件按全局 CLAUDE.md 的 python 精确替换来做。
 
+这个 skill 有两份：lxc 上 Claude Code 用的 `~/.claude/skills/devlog/`，和 Mac 上 Codex 用的 `~/.codex/skills/devlog/`。内容一样，只有路径和执行方式不同。改规则、`posts.md` 或 `check.sh` 时两边一起改。
+
 **文章是给读者看的完成品**，只写做完、验证过的东西。需求清单、进度、"接下来"、待办都不写进文章。还没做完的部分不提，等做完再写。
 
 ## 步骤
 
 1. **确定写进哪篇**。本目录的 `posts.md` 记着项目和文章的对应关系。已有文章的，把新内容并进去：放进对应的小节，过时的内容直接改掉，不要在末尾追加"更新"段落。新主题就新建一篇，并在 `posts.md` 补上对应关系。不确定写进哪篇时问用户。
 2. **写**。规则见下面"文章怎么写"。改已有文章时，先用 `grep -n '^## \|^### '` 看结构，再按需要 `sed -n` 读相关部分，不要整篇读进来。
-3. **检查**。设置 `publishDate`（新文章）或 `updatedDate`（已有文章），然后运行 `check.sh`。
+3. **检查**。新文章设置 `publishDate`。已有文章默认不动日期：列表按 `updatedDate`（没有就用 `publishDate`）排序，设了 `updatedDate` 的旧文章会跑到最前面，只有用户想让它重新排到前面时才设。然后运行 `check.sh`。
 4. **回复**。列出改了哪几处，每处一句，不要贴全文。用户没要求就不要提交。
 
 ## 文章怎么写
@@ -91,11 +96,18 @@ description: 把做完的开发工作写成用户博客（Mac 上的 LZWcc-Blog�
 - **篇幅**。一个主题一篇。超过大约 200 行时，先列出精简方案（删什么、合并什么、能省多少行），等用户确认后再改。
 - 用户想要"可以直接复制的提示词"时，单独放一节，用 ```` ```text ```` 代码块，写成以后还能复用的通用版本，参考 `voice-input-before-ai-coding.md`。
 
+## 和 ui-motion-lab 的分工
+
+用户的作品站 ui-motion-lab（https://lab.lzwcc.xyz）放成品，回答"做出了什么"；博客放过程，回答"怎么做的"。写作品或项目相关的文章时，博客写方案理由、踩坑、命令，不重复写成品展示，开头一句链到作品站的项目页；作品站那边不写踩坑和安装命令。完整约定见 ui-motion-lab 仓库的 `CLAUDE.md`「和博客的分工」。
+
 ## 格式和检查
 
 - 日期格式：`publishDate: 2026-10-21 10:24:18`，不加引号，不带时区，这是项目的惯例。`updatedDate` 也用这个格式。时间取 Mac 当前时间：`date '+%Y-%m-%d %H:%M:%S'`。
+- 署名：frontmatter 写 `authorship`，显示在文章顶部日期那一行。你写的新文章是 `mode: generated`、`models: [Claude Opus 5.5]`（写你自己当前的模型名，用正式写法）。并进已有文章时，`models` 里没有你就补在后面，原来是 `human` 的改成 `assisted`。`human`（手写）只在用户说是自己写的时候用。2026 年 5 月以前没有署名的旧文章不用补。
 - title 不超过 60 个字符，description 不超过 160 个字符（`src/content.config.ts` 会校验）。
 - 站内链接写成 `/blog/<slug>/`。
+- 文件名就是文章地址，新文章用小写英文加连字符（`lab-performance`）。没有配图用 `<slug>.md`，有配图用 `<slug>/index.md`，图片和它放在同一个目录，不再套子目录。旧文章的文件名不改，改了已有链接会失效。
+- 配图：文章改成目录 `<slug>/index.md`，图片放同目录，`![说明](./x.webp)` 引用。主题按图片原始像素宽度显示，先缩到想要的显示宽度（截图一般 480–640px）并裁掉无关部分。删掉或改名图片后 dev 服务器报 `ImageNotFound`：`.astro/data-store.json` 还记着旧的图片列表，停掉 dev、删 `.astro/data-store.json` 和 `.astro/content-assets.mjs` 再启动。
 - 检查（frontmatter、页内锚点、`astro build`）：`ssh lzwcc bash -s -- <slug> < ~/.claude/skills/devlog/check.sh`。提交前加 `full`，跑完整的 `npm run build`：`bash -s -- <slug> full`。
 - 提交时只 `git add` 对应的文章，提交说明不加 AI 署名。push 走 HTTPS 和钥匙串，通过 ssh 执行会失败（`-25308`），要请用户在 Mac 本地执行 `git push`。
 ````
@@ -141,6 +153,12 @@ for k in ('publishDate', 'updatedDate'):
     if m:
         ok = re.fullmatch(r'\d{4}-\d\d-\d\d \d\d:\d\d:\d\d', m.group(1))
         print(f"{'OK  ' if ok else 'BAD '}{k} {m.group(1)}")
+m = re.search(r'^authorship:\n((?:  .*\n)+)', fm + '\n', re.M)
+pd = re.search(r'^publishDate:\s*[\'"]?(\d{4}-\d\d)', fm, re.M)
+if m:
+    print('OK  authorship ' + ' '.join(l.strip() for l in m.group(1).splitlines()))
+elif pd and pd.group(1) >= '2026-06':
+    print('WARN authorship 没填（AI 写过或改过的文章要填）')
 PY
 
 node --input-type=module -e "
