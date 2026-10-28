@@ -222,7 +222,7 @@ const avatar = (await logo()).default
                         >目前正在学习前端开发。</del
                       ></span
                     >
-                    <span class='more'>展开</span>
+                    <span class='more' aria-hidden='true'></span>
                   </summary>
                   <p>
                     每天都用 AI 写代码完成作业做 PPT，用 AI 写代码，用 AI 优化 AI 写的代码， 用 AI
@@ -243,7 +243,16 @@ const avatar = (await logo()).default
                     学期结束，AI
                     熟练掌握了我的专业课内容、代码风格和答辩话术。而我，熟练掌握了复制、粘贴、追问和假装自己懂了。
                   </p>
-                  <a class='about' href='/about'>更多关于我 →</a>
+                  <p class='pinned-foot'>
+                    <a class='about' href='/about'>更多关于我 →</a>
+                    <button
+                      type='button'
+                      class='less'
+                      onclick="this.closest('details').open = false"
+                    >
+                      收起
+                    </button>
+                  </p>
                 </details>
               </div>
             </article>
@@ -388,6 +397,25 @@ const avatar = (await logo()).default
           feed.scrollIntoView({ behavior: 'smooth' })
       }
       tabs.forEach((tab) => tab.addEventListener('click', () => show(tab.dataset.tab!, true)))
+      // 往下翻时文章浮入：加载时在首屏以下的先藏起来（.pending），进入屏幕再浮上来。减弱动效时不做
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const reveal = new IntersectionObserver(
+          (entries) =>
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return
+              const el = e.target as HTMLElement
+              el.classList.add('shown')
+              el.classList.remove('pending')
+              reveal.unobserve(el)
+            }),
+          { rootMargin: '0px 0px -8% 0px' }
+        )
+        rows.forEach((row) => {
+          if (row.getBoundingClientRect().top < innerHeight) return
+          row.classList.add('pending')
+          reveal.observe(row)
+        })
+      }
       // 分类栏吸顶时加 .stuck（只在滚动时检查，一帧最多一次）
       const bar = document.querySelector<HTMLElement>('.tabs')!
       let ticking = false
@@ -748,6 +776,21 @@ const avatar = (await logo()).default
   .post[hidden] {
     display: none;
   }
+  /* 懒渲染：文章都在 HTML 里（搜索引擎、Ctrl+F 找得到），屏幕外的浏览器先不排版、不绘制，快滚到时才渲染 */
+  .posts .post {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 220px;
+  }
+  /* 往下翻时新进屏幕的文章从下面浮上来，只动透明度和位移（合成线程上跑）；首屏的不动 */
+  .posts .post.pending {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  .posts .post.shown {
+    transition:
+      opacity 0.5s ease-out,
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
   .who {
     width: 36px;
     height: 36px;
@@ -890,8 +933,20 @@ const avatar = (await logo()).default
     color: var(--h-accent);
     font-size: 12.5px;
   }
-  .pinned details[open] .more {
-    display: none;
+  .more::after {
+    content: '展开';
+  }
+  .pinned details[open] .more::after {
+    content: '收起';
+  }
+  .pinned-foot {
+    display: flex;
+    justify-content: space-between;
+  }
+  .less {
+    margin-top: 10px;
+    color: var(--h-accent);
+    font-size: 12.5px;
   }
   .pinned p {
     margin-top: 10px;
