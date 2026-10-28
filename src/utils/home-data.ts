@@ -1,4 +1,4 @@
-// 首页（drafts/home）用的作品站数据：作品、AI 用量、GitHub 贡献、技术栈。
+// 首页（src/pages/index.astro）用的作品站数据：作品、AI 用量、GitHub 贡献、技术栈。
 // 构建时请求 lab.lzwcc.xyz/home.json（作品站静态导出时生成，见 ui-motion-lab 的 server/routes/home.json.ts），
 // 5 秒内拿不到就用仓库里的快照：curl -s https://lab.lzwcc.xyz/home.json > src/utils/home-data.snapshot.json
 import snapshot from './home-data.snapshot.json'

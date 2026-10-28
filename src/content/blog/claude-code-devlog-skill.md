@@ -116,6 +116,7 @@ description: 把做完的开发工作写成用户博客（Mac 上的 LZWcc-Blog�
 
 - 日期格式：`publishDate: 2026-10-21 10:24:18`，不加引号，不带时区，这是项目的惯例。`updatedDate` 也用这个格式。时间取 Mac 当前时间：`date '+%Y-%m-%d %H:%M:%S'`。
 - 署名：frontmatter 写 `authorship`，显示在文章顶部日期那一行。你写的新文章是 `mode: generated`、`models: [Claude Opus 5.5]`（写你自己当前的模型名，用正式写法）。并进已有文章时，`models` 里没有你就补在后面，原来是 `human` 的改成 `assisted`。`human`（手写）只在用户说是自己写的时候用。2026 年 5 月以前没有署名的旧文章不用补。
+- 分类：frontmatter 写 `category`，首页按它分栏，一篇只填一个：`project`（自己做的东西的开发记录）、`postmortem`（线上问题和排障）、`tooling`（开发环境、AI 工具的配置和工作流）、`study`（课程、刷题、面试、教程）。按文章写的是什么选，和 AI 参与了多少无关（那个看署名）。拿不准时问用户。
 - title 不超过 60 个字符，description 不超过 160 个字符（`src/content.config.ts` 会校验）。
 - 站内链接写成 `/blog/<slug>/`。
 - 文件名就是文章地址，新文章用小写英文加连字符（`lab-performance`）。没有配图用 `<slug>.md`，有配图用 `<slug>/index.md`，图片和它放在同一个目录，不再套子目录。旧文章的文件名不改，改了已有链接会失效。
@@ -171,6 +172,11 @@ if m:
     print('OK  authorship ' + ' '.join(l.strip() for l in m.group(1).splitlines()))
 elif pd and pd.group(1) >= '2026-06':
     print('WARN authorship 没填（AI 写过或改过的文章要填）')
+m = re.search(r'^category:\s*(\S+)', fm, re.M)
+if m:
+    print(('OK  ' if m.group(1) in ('project', 'postmortem', 'tooling', 'study') else 'BAD ') + 'category ' + m.group(1))
+elif pd and pd.group(1) >= '2026-06':
+    print('WARN category 没填（首页按它分栏）')
 PY
 
 node --input-type=module -e "
