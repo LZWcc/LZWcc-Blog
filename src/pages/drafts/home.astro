@@ -301,10 +301,7 @@ const avatar = (await logo()).default
                 ))
               }
             </div>
-            <div class='end'>
-              <Quote />
-              <p><a href='/archives'>到底了。按年份看全部文章 →</a></p>
-            </div>
+            <p class='end'><a href='/archives'>到底了。按年份看全部文章 →</a></p>
           </main>
 
           <!-- ── 右栏 ── -->
@@ -366,6 +363,8 @@ const avatar = (await logo()).default
         </div>
       </div>
     </div>
+    <!-- 随机名言放在页脚上面、居中（原首页的位置）：中间一栏太窄，长一点的句子会折行 -->
+    <div class='quote'><Quote /></div>
     <div class='foot-wrap'><Footer /></div>
 
     <script>
@@ -912,12 +911,19 @@ const avatar = (await logo()).default
     color: var(--h-accent);
   }
   .end {
-    display: grid;
-    justify-items: center;
-    gap: 14px;
     padding: 28px 0 40px;
     color: var(--h-faint);
     font-size: 12px;
+    text-align: center;
+  }
+  .quote {
+    display: flex;
+    justify-content: center;
+    padding: 8px 24px 0;
+  }
+  /* 主题的胶囊是全圆角，折成两行（手机上）会撑成椭圆；固定 20px，一行时看起来还是胶囊 */
+  .quote :global(quote-component > div) {
+    border-radius: 20px;
   }
 
   /* ── 右栏 ── */
@@ -1011,6 +1017,15 @@ const avatar = (await logo()).default
     }
     .post {
       padding: 16px;
+    }
+    /* 窄屏放不下五个分类：按内容宽度排开，可以左右滑 */
+    .tabs {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs button {
+      flex: none;
+      padding: 0 14px;
     }
   }
 </style>
