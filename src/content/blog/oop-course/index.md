@@ -5,7 +5,6 @@ publishDate: 2025-12-24 16:07:29
 tags:
   - Example
   - Technology
-permalink: /blog/oop-course/
 draft: false
 ---
 ## 课题：在线图书管理系统
@@ -57,7 +56,7 @@ draft: false
 
 #### 1.2.3 系统流程图
 
-![1766568194338](image/oop-course/1766568194338.png)
+![1766568194338](./1766568194338.png)
 
 ### 1.3 输入输出要求
 
@@ -90,7 +89,7 @@ draft: false
 
 #### 2.2.1 系统功能模块图
 
-![1766568450622](image/oop-course/1766568450622.png)
+![1766568450622](./1766568450622.png)
 
 #### 2.2.2 模块功能说明
 
