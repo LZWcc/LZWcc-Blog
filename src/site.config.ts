@@ -13,7 +13,9 @@ export const theme: ThemeUserConfig = {
   /** Description metadata for your website. Can be used in page metadata.
    * 网站描述元数据，可用于页面元信息。
    */
-  description: 'Stay hungry, stay foolish',
+  // 签名（苏轼《临江仙·夜归临皋》），首页名字下面也是这句。用在 RSS 频道描述和 Links 页的友链信息；
+  // 搜索结果和分享卡片用的页面描述见下面的 SITE_SUMMARY
+  description: '何时忘却营营',
   /** The default favicon for your site which should be a path to an image in the `public/` directory.
    * 站点的默认 favicon，应当是 `public/` 目录下图片的路径。
    */
@@ -124,6 +126,10 @@ export const theme: ThemeUserConfig = {
     share: ['weibo', 'x', 'bluesky']
   }
 }
+
+// 页面描述（<meta name="description">、分享卡片）：首页和没有单独写描述的页面用这句，说清楚这是什么站
+export const SITE_SUMMARY =
+  'LZWcc 的博客，记前端开发的过程、踩过的坑和学习笔记。做出来的东西放在作品站 lab.lzwcc.xyz。'
 
 export const integ: IntegrationUserConfig = {
   // [Links] // [链接]
