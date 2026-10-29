@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh blog pageviews from Umami
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+EnvironmentFile=/etc/lzwcc-blog/umami.env
+ExecStart=/usr/local/bin/node /opt/lzwcc-blog/sync-pageviews.mjs /var/lib/lzwcc-blog/pageviews.json
+TimeoutStartSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/lzwcc-blog

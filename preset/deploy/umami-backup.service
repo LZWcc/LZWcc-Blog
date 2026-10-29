@@ -1,0 +1,9 @@
+[Unit]
+Description=Back up the self-hosted Umami database
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/bin/sh /opt/umami-blog/backup.sh

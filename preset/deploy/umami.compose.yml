@@ -1,0 +1,65 @@
+name: blog-umami
+
+services:
+  umami:
+    image: ghcr.io/umami-software/umami:3.4.1
+    ports:
+      - '127.0.0.1:3100:3000'
+    environment:
+      DATABASE_URL: postgresql://umami:${POSTGRES_PASSWORD}@db:5432/umami
+      APP_SECRET: ${APP_SECRET}
+      TWO_FACTOR_ENCRYPTION_KEY: ${TWO_FACTOR_ENCRYPTION_KEY}
+      DISABLE_TELEMETRY: '1'
+      CLIENT_IP_HEADER: x-real-ip
+      NODE_OPTIONS: --max-old-space-size=256
+    depends_on:
+      db:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '2'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl --fail http://localhost:3000/api/heartbeat']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: UTC
+    command:
+      - postgres
+      - -c
+      - shared_buffers=32MB
+      - -c
+      - max_connections=20
+      - -c
+      - work_mem=2MB
+    volumes:
+      - database:/var/lib/postgresql/data
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '2'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U umami -d umami']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  database:

@@ -48,9 +48,12 @@ const showComments = remark42Config.enable && comment
     }
 
     function getUmamiPageviews() {
-      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath, { cache: 'no-store' })
-        .then((response) => response.ok ? response.json() : {})
-        .catch(() => ({}))
+      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000)
+      })
+        .then((response) => response.ok ? response.json() : null)
+        .catch(() => null)
 
       return window[PAGEVIEWS_CACHE_KEY]
     }
@@ -61,7 +64,10 @@ const showComments = remark42Config.enable && comment
       document.querySelectorAll('.umami-pageview-count').forEach((element) => {
         const path = element.dataset.path || window.location.pathname
         const normalized = normalizeUmamiPath(path)
-        element.textContent = String(pageviews[path] ?? pageviews[normalized] ?? pageviews[`${normalized}/`] ?? 0)
+        const views = pageviews?.[path] ?? pageviews?.[normalized] ?? pageviews?.[`${normalized}/`]
+        const available = typeof views === 'number' && Number.isFinite(views) && views >= 0
+        element.textContent = available ? String(views) : '—'
+        element.title = available ? 'Umami 阅读量（定期更新）' : '阅读量暂不可用'
       })
     }
 

@@ -226,9 +226,12 @@ export const remark42Config = {
 // Umami analytics config // Umami 访问量统计配置
 export const umamiConfig = {
   enable: true,
-  scriptUrl: process.env.PUBLIC_UMAMI_SCRIPT_URL || 'https://cloud.umami.is/script.js',
+  scriptUrl: process.env.PUBLIC_UMAMI_SCRIPT_URL || 'https://umami.lzwcc.xyz/script.js',
   websiteId: process.env.PUBLIC_UMAMI_WEBSITE_ID || '',
-  apiEndpoint: (process.env.UMAMI_API_CLIENT_ENDPOINT || 'https://api.umami.is/v1').replace(/\/$/, ''),
+  apiEndpoint: (process.env.UMAMI_API_CLIENT_ENDPOINT || 'https://umami.lzwcc.xyz/api').replace(
+    /\/$/,
+    ''
+  ),
   statsStartAt: process.env.UMAMI_STATS_START_AT || '1970-01-01',
   statsJsonPath: '/stats/pageviews.json'
 }

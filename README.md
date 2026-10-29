@@ -61,7 +61,9 @@ comment: false
 - `public/`：直接复制到构建产物的静态资源。
 - `.github/workflows/deploy.yml`：GitHub Actions 构建和 rsync 部署流程。
 
-目前使用 Remark42 评论，Waline 配置保留但已禁用；搜索使用 Pagefind，访问统计使用 Umami。缺少 Umami 网站 ID 或 API Key 时，构建会写出空的浏览量统计，不影响其余页面构建。
+目前使用 Remark42 评论，Waline 配置保留但已禁用；搜索使用 Pagefind，访问统计使用自建 Umami。部署、历史数据导入和维护方式见 [Umami 运维说明](docs/umami.md)。Umami Cloud 免费版可收集访问统计，但 API 访问需要 Pro 套餐。缺少网站 ID、API Key 或 API 请求失败时，构建会写出 `null`，页面显示 `— views`，避免把统计不可用误报为零访问。
+
+默认 `/stats/pageviews.json` 是构建时生成的快照，不会随访问实时变化。`preset/scripts/syncPageviews.ts` 可打包成独立 Node.js 脚本，配合 `preset/deploy/blog-pageviews.service` 和 `.timer` 每 10 分钟同步；请求失败时保留旧快照。定时任务需要单独配置有效的 API 访问权限，并不会随博客静态部署自动安装。
 
 工作流在 `main` 分支的 `src/**`、`public/**`、`package.json` 或 `bun.lock` 发生推送变更时触发，构建后将 `dist/` 同步至服务器 `/var/www/blog/`。仅修改 README 不会触发部署。
 
