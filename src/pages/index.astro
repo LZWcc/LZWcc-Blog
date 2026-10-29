@@ -485,7 +485,7 @@ const avatar = (await logo()).default
       )
       checkStuck()
       show(new URLSearchParams(location.search).get('cat') ?? 'all', false)
-      // 左右两栏学推特：比屏幕矮就停在顶栏下面；比屏幕高就先跟着页面滚，底部露出来以后停住。
+      // 左右两栏学推特：比屏幕矮就停在顶栏下面（左栏另算，见样式）；比屏幕高就先跟着页面滚，底部露出来以后停住。
       // 停的位置在样式里算（.profile, .rail 的 top），这里只把栏的高度交给它
       const asides = document.querySelectorAll<HTMLElement>('.profile, .rail')
       const measure = () =>
@@ -605,6 +605,12 @@ const avatar = (await logo()).default
     position: sticky;
     top: min(calc(var(--head) + 16px), calc(100vh - var(--h, 0px) - 16px));
     transition: top 0.3s;
+  }
+  /* 左栏停住时横幅上沿滚出屏幕 5px，顶栏出来时也不往下让。改版前线上在 1026px 高的窗口里就是这样，
+     但那是左栏比屏幕高算出来的，删掉「正在做」一条、栏变矮以后就没了，所以这里写死，不随栏高变。
+     栏更高时仍是底部露出来再停 */
+  .profile {
+    top: min(-5px, calc(100vh - var(--h, 0px) - 16px));
   }
   .banner {
     height: 92px;
