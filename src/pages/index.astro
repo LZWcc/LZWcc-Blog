@@ -1,6 +1,6 @@
 ---
 // 首页：三栏信息流（2026-10 从 astro-pure 默认首页换过来，旧版存档在标签 homepage-classic-v1）。
-//   左边个人资料（颗粒渐变横幅、教育、技能），中间每篇文章是一条动态（置顶一段自我介绍，按 category 分栏），
+//   左边个人资料（颗粒渐变横幅、技能），中间每篇文章是一条动态（置顶一段自我介绍，按 category 分栏），
 //   右边写作记录、作品站最新作品、常用的工具、AI 用量、GitHub。布局照 ui-motion-lab 的标签 homepage-feed-v1。
 // 配色：作品站的中性灰白 + 博客自己的青蓝强调色和顶部渐变，只在这一页；顶栏和页脚是主题的，
 // 主题的颜色变量在这一页换成同一套配色。作品站的数据来自 lab.lzwcc.xyz/home.json（src/utils/home-data.ts）。
@@ -10,7 +10,7 @@ import { render } from 'astro:content'
 import { Quote } from 'astro-pure/advanced'
 import { Footer, Header, ThemeProvider } from 'astro-pure/components/basic'
 import { getBlogCollection, getUniqueTagsWithCount, sortMDByDate } from 'astro-pure/server'
-import { Card, Icon } from 'astro-pure/user'
+import { Icon } from 'astro-pure/user'
 import BaseHead from '@/components/BaseHead.astro'
 import Heatmap from '@/components/feed/Heatmap.astro'
 import TechStack from '@/components/feed/TechStack.astro'
@@ -20,7 +20,7 @@ import { CATEGORIES, categoryLabel, type Category } from '@/utils/category'
 import { writingDays } from '@/utils/heatmap'
 import { getHomeData, LAB } from '@/utils/home-data'
 import banner from '@/assets/home/banner.webp'
-import config from '@/site-config'
+import config, { SITE_SUMMARY } from '@/site-config'
 
 import '@/assets/styles/global.css'
 import '@/assets/styles/app.css'
@@ -96,6 +96,22 @@ const SKILLS: [string, string[]][] = [
   ['工具', ['Git', 'GitHub Actions', 'pnpm', 'Vitest', 'Linux', 'Claude Code', 'Codex']]
 ]
 
+// 左栏的「正在做」：标题和说明手写，做完了删掉、换下一件（agent 写博客、收录效果时会问用户要不要改，
+// 见 devlog / collect 技能）。progress 是 [已完成, 目标]
+const EFFECT_GOAL = 10
+const effectCount = home.works.filter((w) => w.type !== 'project').length
+const NOW: { title: string; note: string; href?: string; progress?: [number, number] }[] = [
+  {
+    title: '往作品站收录效果',
+    note: '优先复杂交互、滚动驱动和 WebGL',
+    href: `${LAB}/works`,
+    progress: [effectCount, EFFECT_GOAL]
+  },
+  { title: '博客首页改版', note: '换成平灰底，左右两栏收拾整齐' }
+]
+// 最近一次有提交的日子（GitHub 贡献数据，作品站发布时同步）
+const lastCommit = home.github.contributions.filter((d) => d.count > 0).at(-1)?.date
+
 // 右栏
 const WRITING_WEEKS = 20
 const writing = writingDays(
@@ -118,11 +134,10 @@ const avatar = (await logo()).default
 
 <html lang={config.locale.lang}>
   <head>
-    <BaseHead title='Home' description={config.description} />
+    <BaseHead title='Home' description={SITE_SUMMARY} />
     <ThemeProvider />
   </head>
   <body class='home-page'>
-    <div class='glow' aria-hidden='true'></div>
     <div class='page'>
       <div class='inner'>
         <Header />
@@ -133,7 +148,8 @@ const avatar = (await logo()).default
             <div class='banner'><Image src={banner} alt='' loading='eager' /></div>
             <Image class='face' src={avatar} alt='LZWcc 的头像' width={152} loading='eager' />
             <h1>LZWcc</h1>
-            <p class='handle'>软件工程 · 湖南工程学院</p>
+            {/* 苏轼《临江仙·夜归临皋》：长恨此身非我有，何时忘却营营。「前端开发」在下面的求职标签里有，「软件工程」在简介里有 */}
+            <p class='handle motto'>何时忘却营营</p>
             <p class='status'><i></i>正在找前端开发的工作</p>
             <p class='bio'>
               你好，我叫
@@ -154,6 +170,46 @@ const avatar = (await logo()).default
               <div><dd>{home.works.length}</dd><dt>作品</dt></div>
               <div><dd>{compact(home.tokens.total)}</dd><dt>AI tokens</dt></div>
             </dl>
+            <h2 class='side-h'>正在做</h2>
+            <ul class='now'>
+              {
+                NOW.map((item) => {
+                  const Tag = item.href ? 'a' : 'div'
+                  return (
+                    <li>
+                      <Tag href={item.href}>
+                        <b>{item.title}</b>
+                        <span>{item.note}</span>
+                        {item.progress && (
+                          <span class='progress'>
+                            <span class='bar'>
+                              <i style={`width:${Math.min(item.progress[0] / item.progress[1], 1) * 100}%`} />
+                            </span>
+                            <small>
+                              {item.progress[0]} / {item.progress[1]}
+                            </small>
+                          </span>
+                        )}
+                      </Tag>
+                    </li>
+                  )
+                })
+              }
+            </ul>
+            {
+              lastCommit && (
+                <p class='now-foot'>
+                  <i />
+                  GitHub 最近一次提交 · {lastCommit.slice(5).replace('-', '.')}
+                </p>
+              )
+            }
+            {/*
+              教育卡（2026-10-29 起不公开学校信息，先注释掉，以后要用再打开）：
+              打开时要把 Card 加回上面的 import（from 'astro-pure/user'），校徽图放回 public/images/HNIE.svg
+              （存档在 src/assets/archive/HNIE.svg，不 import 就不会发布），再打开下面样式里注释掉的那段。
+              校徽是右半边铺满、40% 透明度、上下出血（-my-3）的水印，左边压着校名、专业、时间。
+
             <h2 class='side-h'>教育</h2>
             <Card
               as='a'
@@ -170,6 +226,7 @@ const avatar = (await logo()).default
                 aria-hidden='true'
               />
             </Card>
+            */}
             <h2 class='side-h'>技能</h2>
             <dl class='skills'>
               {
@@ -311,12 +368,12 @@ const avatar = (await logo()).default
           <!-- ── 右栏 ── -->
           <aside class='rail'>
             <section>
-              <h2>写作记录</h2>
+              <header class='rail-h'><h2>写作记录</h2><a href='/archives'>归档 →</a></header>
               <p class='sum'><b>{writingTotal}</b> 篇 · 最近 {WRITING_WEEKS} 周</p>
               <Heatmap days={writing} weeks={WRITING_WEEKS} unit='篇' />
             </section>
             <section>
-              <h2>作品站</h2>
+              <header class='rail-h'><h2>作品站</h2><a href={`${LAB}/works`}>全部 →</a></header>
               <ul class='works'>
                 {
                   works.map((w) => (
@@ -340,28 +397,29 @@ const avatar = (await logo()).default
                   ))
                 }
               </ul>
-              <a class='all' href={`${LAB}/works`}>全部 {home.works.length} 件作品 →</a>
             </section>
             <section>
-              <h2>常用的工具</h2>
+              <header class='rail-h'><h2>常用的工具</h2></header>
               <TechStack stack={home.stack} />
             </section>
             <section>
-              <h2>AI 用量</h2>
+              <header class='rail-h'>
+                <h2>AI 用量</h2><a href={`${LAB}/project/token-stats`}>token-stats →</a>
+              </header>
               <TokenUsage tokens={home.tokens} />
             </section>
             <section>
-              <h2>GitHub</h2>
+              <header class='rail-h'>
+                <h2>GitHub</h2><a
+                  href={`https://github.com/${home.github.user}`}
+                  target='_blank'
+                  rel='noopener'>主页 ↗</a
+                >
+              </header>
               <p class='sum'>
                 <b>{githubTotal.toLocaleString()}</b> 次贡献 · 最近 {githubWeeks} 周
               </p>
               <Heatmap days={githubDays} weeks={githubWeeks} unit='次贡献' />
-              <a
-                class='all'
-                href={`https://github.com/${home.github.user}`}
-                target='_blank'
-                rel='noopener'>去 GitHub 看看 ↗</a
-              >
             </section>
           </aside>
         </div>
@@ -451,8 +509,8 @@ const avatar = (await logo()).default
     --h-ink-3: #5a5a5a;
     --h-muted: #8a8a8a;
     --h-faint: #a8a8a8;
-    --h-empty: rgb(0 0 0 / 7%); /* 半透明：底色带了淡蓝渐变，实色的浅灰会看不见 */
-    /* 强调色和热力图用旧博客的青蓝（主题 --primary: 200 29% 45%，顶部渐变 #659EB9） */
+    --h-empty: #e4e4e4; /* 热力图的空格子 */
+    /* 强调色和热力图用博客原来的青蓝（主题 --primary: 200 29% 45%），和作品站的亮蓝区分开 */
     --h-accent: #518197;
     --h-accent-rgb: 81 129 151;
     --h-heat-1: #cfe3ec;
@@ -514,16 +572,6 @@ const avatar = (await logo()).default
     --border: 240 3% 17%;
     --primary: 195 95% 85%;
   }
-  /* 顶部那层淡蓝渐变，和博客其他页面（BaseLayout 的 highlightColor）一样 */
-  .home-page .glow {
-    position: absolute;
-    inset: 0 0 auto;
-    z-index: 0;
-    height: 100vh;
-    background-image: linear-gradient(#659eb9, transparent);
-    opacity: 0.25;
-    pointer-events: none;
-  }
   .home-page .page {
     position: relative;
   }
@@ -564,6 +612,7 @@ const avatar = (await logo()).default
     overflow: hidden;
     border-radius: 8px;
   }
+
   .banner img {
     width: 100%;
     height: 100%;
@@ -588,6 +637,11 @@ const avatar = (await logo()).default
   .handle {
     color: var(--h-muted);
     font-size: 13px;
+  }
+  /* 名字下面的签名：和原来那行一样的灰色小字，换成宋体、稍微拉开字距 */
+  .motto {
+    font-family: 'Songti SC', 'STSong', 'Noto Serif SC', serif;
+    letter-spacing: 0.12em;
   }
   .status {
     display: inline-flex;
@@ -632,10 +686,10 @@ const avatar = (await logo()).default
   .links a:hover {
     color: var(--h-accent);
   }
+  /* 四个数字排一行，省出来的高度给「正在做」，左栏总高和原来（有教育卡时）差不多 */
   .numbers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    display: flex;
+    justify-content: space-between;
     margin-top: 20px;
     padding-top: 16px;
     border-top: 1px solid var(--h-line);
@@ -657,7 +711,68 @@ const avatar = (await logo()).default
     font-size: 13px;
     font-weight: 600;
   }
-  /* 教育：主题的 Card（和原首页一样），窄栏里字号收小一点 */
+  /* 正在做：标题、一句说明，有进度的加一条细进度条 */
+  .now {
+    display: grid;
+    gap: 12px;
+  }
+  .now a,
+  .now div {
+    display: grid;
+    gap: 2px;
+  }
+  .now b {
+    color: var(--h-ink);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .now a:hover b {
+    color: var(--h-accent);
+  }
+  .now span {
+    color: var(--h-muted);
+    font-size: 12px;
+  }
+  .now .progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .now .bar {
+    flex: 1;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 2px;
+    background: var(--h-empty);
+  }
+  .now .bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--h-accent);
+  }
+  .now small {
+    color: var(--h-muted);
+    font-family: var(--mono);
+    font-size: 10.5px;
+  }
+  .now-foot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    color: var(--h-faint);
+    font-size: 11.5px;
+  }
+  .now-foot i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--h-heat-3);
+  }
+
+  /* 教育卡（上面注释掉了）：主题的 Card，窄栏里字号收小一点
   .profile :global(.edu) {
     overflow: hidden;
     padding: 10px 14px;
@@ -668,6 +783,7 @@ const avatar = (await logo()).default
   .profile :global(.edu p) {
     font-size: 12px;
   }
+  */
   .skills div + div {
     margin-top: 8px;
   }
@@ -702,7 +818,7 @@ const avatar = (await logo()).default
     z-index: 10;
     display: flex;
     border-bottom: 1px solid var(--h-line);
-    /* 在原位时透明，和中间一栏一体（背后是顶部的淡蓝渐变）；吸顶以后文章从下面滚过，才加底色和模糊 */
+    /* 在原位时透明，和中间一栏一体；吸顶以后文章从下面滚过，才加底色和模糊 */
     transition:
       top 0.3s,
       background-color 0.2s;
@@ -833,8 +949,9 @@ const avatar = (await logo()).default
     border-radius: 12px;
     background: var(--h-line);
   }
+  /* 配图限高（中间栏宽约 490px 时整块在 240px 上下），图完整缩放进去，不裁剪 */
   .media:not(.n1, .stack) {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 2 / 1;
     grid-template-columns: 1fr 1fr;
   }
   .media.n3,
@@ -856,11 +973,12 @@ const avatar = (await logo()).default
     object-fit: contain;
   }
   .media.n1 img {
-    max-height: 320px;
+    max-height: 240px;
   }
-  /* 宽图叠放：按原比例，不定高 */
+  /* 宽图叠放：按原比例，每张最高 120px */
   .media.stack .cell img {
     height: auto;
+    max-height: 120px;
   }
   /* 超过 4 张：第 4 张蒙一层，写剩下几张 */
   .cell[data-more]::after {
@@ -934,7 +1052,7 @@ const avatar = (await logo()).default
   }
   .about:hover,
   .end a:hover,
-  .all:hover {
+  .rail-h a:hover {
     color: var(--h-accent);
   }
   .end {
@@ -954,19 +1072,29 @@ const avatar = (await logo()).default
   }
 
   /* ── 右栏 ── */
+  /* 每块的标题行一样：标题 + 右边的入口，下面一条分隔线 */
   .rail {
     display: grid;
-    gap: 30px;
+    gap: 32px;
   }
-  .rail h2 {
+  .rail-h {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--h-line);
+  }
+  .rail-h h2 {
     font-size: 13px;
     font-weight: 600;
   }
+  .rail-h a {
+    color: var(--h-muted);
+    font-size: 12px;
+  }
   .sum {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: var(--h-muted);
     font-size: 12px;
   }
@@ -1003,12 +1131,6 @@ const avatar = (await logo()).default
     color: var(--h-muted);
     font-family: var(--mono);
     font-size: 10.5px;
-  }
-  .all {
-    display: inline-block;
-    margin-top: 10px;
-    color: var(--h-muted);
-    font-size: 12px;
   }
   .foot-wrap {
     max-width: 70rem;
