@@ -35,9 +35,9 @@ const blog = defineCollection({
       tags: z.array(z.string()).default([]).transform(removeDupsAndLowerCase),
       language: z.string().optional(),
       draft: z.boolean().default(false),
-      // 文章写的是什么，首页按它分栏：project 项目 / postmortem 踩坑复盘 / tooling 工具配置 / study 学习笔记
+      // 文章写的是什么，首页按它分栏：project 项目 / postmortem 踩坑复盘 / tooling 工具配置 / study 学习笔记 / essay 随笔
       // （和 AI 参与了多少无关，那个看 authorship）。名称在 src/utils/category.ts
-      category: z.enum(['project', 'postmortem', 'tooling', 'study']).optional(),
+      category: z.enum(['project', 'postmortem', 'tooling', 'study', 'essay']).optional(),
       // 谁写的，显示在文章顶部：手写 / AI 协助 / AI 生成；后两种在 models 里写模型名，多个按参与多少排
       authorship: z
         .object({

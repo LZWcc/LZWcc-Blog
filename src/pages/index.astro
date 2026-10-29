@@ -106,8 +106,7 @@ const NOW: { title: string; note: string; href?: string; progress?: [number, num
     note: '优先复杂交互、滚动驱动和 WebGL',
     href: `${LAB}/works`,
     progress: [effectCount, EFFECT_GOAL]
-  },
-  { title: '博客首页改版', note: '换成平灰底，左右两栏收拾整齐' }
+  }
 ]
 // 最近一次有提交的日子（GitHub 贡献数据，作品站发布时同步）
 const lastCommit = home.github.contributions.filter((d) => d.count > 0).at(-1)?.date
