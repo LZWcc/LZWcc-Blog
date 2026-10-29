@@ -14,7 +14,7 @@ authorship:
 category: project
 ---
 
-[Niwa](https://github.com/LZWcc/Niwa) 是我写的新标签页扩展（Edge / Chrome）。Codex 能生成宠物（hatch-pet），我想让同一只宠物也待在新标签页上：浮在页面上，拖到哪停在哪。顾虑是新标签页开得最频繁，要尽量轻，所以这篇主要记格式、怎么省内存，以及实测的内存数字。
+[Niwa](https://lab.lzwcc.xyz/project/niwa) 是我写的新标签页扩展（Edge / Chrome）。Codex 能生成宠物（hatch-pet），我想让同一只宠物也待在新标签页上：浮在页面上，拖到哪停在哪。顾虑是新标签页开得最频繁，要尽量轻，所以这篇主要记格式、怎么省内存，以及实测的内存数字。
 
 ## Codex 宠物的格式
 

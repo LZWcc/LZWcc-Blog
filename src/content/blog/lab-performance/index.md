@@ -148,5 +148,3 @@ CPU=4 W=412 H=823 COLD=1 DUR=8000 node trace.mjs "$url" |
   awk '/^@[0-9]+ms +[0-9]+ms/ { gsub("ms","",$2); d=$2+0; if (d>50) tbt+=d-50; if (d>max) max=d }
        END { printf "TBT≈%dms 最长任务 %dms\n", tbt, max }'
 ```
-
-这次改到的文件（ui-motion-lab 仓库，提交 `59429a3`）：`app/assets/css/main.css` 加插件；图标改类名的是 `app/components/home/` 下的 TechStackCard、IntroCard、MusicCard、StatCard，以及 `ColorModeButton.vue`、`SiteFoot.vue`、`WorkArticle.vue`、`app/pages/works.vue`；深色图配对在 `app/composables/useWorks.ts` 的 `darkCover` 和 `app/components/content/ProjectShot.vue`；仓库的 `CLAUDE.md` 加了一节「图标」写这条约定。nginx 改的是服务器上的 `/etc/nginx/sites-available/lab.lzwcc.xyz`。
