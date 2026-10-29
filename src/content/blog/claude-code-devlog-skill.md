@@ -83,6 +83,7 @@ description: 把做完的开发工作写成用户博客（Mac 上的 LZWcc-Blog�
 2. **写**。规则见下面"文章怎么写"。改已有文章时，先用 `grep -n '^## \|^### '` 看结构，再按需要 `sed -n` 读相关部分，不要整篇读进来。
 3. **检查**。新文章设置 `publishDate`。已有文章默认不动日期：列表按 `updatedDate`（没有就用 `publishDate`）排序，设了 `updatedDate` 的旧文章会跑到最前面，只有用户想让它重新排到前面时才设。然后运行 `check.sh`。
 4. **回复**。列出改了哪几处，每处一句，不要贴全文。用户没要求就不要提交。
+5. **看一眼首页的「正在做」**。博客首页左栏的「正在做」写在 `src/pages/index.astro` 的 `NOW` 数组里（标题和一句说明是手写的，进度数字和最近提交日期是自动的）。这次的工作做完了其中一件，或者开始了一件新的、要做一阵子的事，在回复末尾问用户要不要改，同意了再改。
 
 ## 文章怎么写
 
@@ -121,8 +122,8 @@ description: 把做完的开发工作写成用户博客（Mac 上的 LZWcc-Blog�
 - title 不超过 60 个字符，description 不超过 160 个字符（`src/content.config.ts` 会校验）。
 - 站内链接写成 `/blog/<slug>/`。
 - 文件名就是文章地址，新文章用小写英文加连字符（`lab-performance`）。没有配图用 `<slug>.md`，有配图用 `<slug>/index.md`，图片和它放在同一个目录，不再套子目录。旧文章的文件名不改，改了已有链接会失效。
-- 配图：文章改成目录 `<slug>/index.md`，图片放同目录，`![说明](./x.webp)` 引用。主题按图片原始像素宽度显示，先缩到想要的显示宽度（截图一般 480–640px）并裁掉无关部分。删掉或改名图片后 dev 服务器报 `ImageNotFound`：`.astro/data-store.json` 还记着旧的图片列表，停掉 dev、删 `.astro/data-store.json` 和 `.astro/content-assets.mjs` 再启动。
-- 检查（frontmatter、页内锚点、`astro build`）：`ssh lzwcc bash -s -- <slug> < ~/.claude/skills/devlog/check.sh`。提交前加 `full`，跑完整的 `npm run build`：`bash -s -- <slug> full`。
+- 配图：文章改成目录 `<slug>/index.md`，图片放同目录，`![说明](./x.webp)` 引用。截图按 2 倍像素导出：整页截图用 1280 宽的视口、像素比 1 截，不要再缩小。正文栏宽 760px，图片会缩到栏宽显示；640px 的图在 Retina 屏上会糊，首页动态的缩略图也要 720px 宽的源图。只截一块的图，按想要的显示宽度的 2 倍截，并裁掉无关部分。截首页时注意中间动态里的配图缩略图：换了文章配图后要重截，否则拍进去的是旧图。删掉或改名图片后 dev 服务器报 `ImageNotFound`：`.astro/data-store.json` 还记着旧的图片列表，停掉 dev、删 `.astro/data-store.json` 和 `.astro/content-assets.mjs` 再启动。
+- 检查（frontmatter、页内锚点、`astro build`）：`ssh lzwcc bash -s -- <slug> < ~/.claude/skills/devlog/check.sh`。提交前加 `full`，跑完整的 `bun run build`（和 GitHub Actions 一样，博客用 bun）：`bash -s -- <slug> full`。
 - 提交时只 `git add` 对应的文章，提交说明不加 AI 署名。push 走 HTTPS 和钥匙串，通过 ssh 执行会失败（`-25308`），要请用户在 Mac 本地执行 `git push`。
 ````
 
@@ -151,7 +152,7 @@ cd ~/Documents/Code/LZWcc-Blog || exit 1
 f=src/content/blog/$slug.md
 [ -f "$f" ] || f=src/content/blog/$slug/index.md
 [ -f "$f" ] || { echo "找不到文章: $slug"; exit 1; }
-export PATH=$HOME/.nvm/versions/node/v22.20.0/bin:$PATH
+export PATH=$HOME/.nvm/versions/node/v22.20.0/bin:/opt/homebrew/bin:$PATH
 
 echo "== ${f}（$(wc -l < "$f" | tr -d ' ') 行）"
 /usr/bin/python3 - "$f" <<'PY'
@@ -189,9 +190,9 @@ for (const m of md.matchAll(/\]\(#([^)]+)\)/g)) { n++; console.log((ids.has(m[1]
 if (!n) console.log('OK   没有页内锚点');"
 
 if [ "${2:-}" = full ]; then
-  (perl -e 'alarm shift; exec @ARGV' 500 npm run build) > /tmp/blog-build.log 2>&1
+  (perl -e 'alarm shift; exec @ARGV' 500 bun run build) > /tmp/blog-build.log 2>&1
 else
-  (perl -e 'alarm shift; exec @ARGV' 300 npx astro build) > /tmp/blog-build.log 2>&1
+  (perl -e 'alarm shift; exec @ARGV' 300 bunx astro build) > /tmp/blog-build.log 2>&1
 fi
 echo "build exit=$?"; grep -E '^- [0-9]+ errors' /tmp/blog-build.log; tail -1 /tmp/blog-build.log
 ```
