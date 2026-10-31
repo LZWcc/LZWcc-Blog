@@ -133,7 +133,8 @@ export const integ: IntegrationUserConfig = {
     // Yourself link info // 个人链接信息
     applyTip: [
       { name: 'Name', val: theme.title },
-      { name: 'Desc', val: theme.description || 'Null' },
+      // Friend-link slogan; the site meta description stays plain.
+      { name: 'Desc', val: '何时忘却营营(∠・ω< )⌒★' },
       { name: 'Link', val: 'https://lzwcc.xyz/' },
       { name: 'Avatar', val: 'https://lzwcc.xyz/avatar.png' }
     ],
