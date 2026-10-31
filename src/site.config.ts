@@ -1,4 +1,4 @@
-import type { CardListData, Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
+import type { Config, IntegrationUserConfig, ThemeUserConfig } from 'astro-pure/types'
 
 export const theme: ThemeUserConfig = {
   // [Basic]
@@ -85,19 +85,12 @@ export const theme: ThemeUserConfig = {
         title: 'Travelling',
         link: 'https://www.travellings.cn/go.html',
         style: 'text-sm'
-      },
-      // Privacy Policy link // 隐私政策链接
-      {
-        title: 'Site Policy',
-        link: '/terms/list',
-        pos: 2 // position set to 2 will be appended to copyright line
-        // pos: 2 表示此项将追加到版权行末尾
       }
     ],
     /** Enable displaying a “Astro & Pure theme powered” link in your site’s footer.
      * 在站点页脚显示 “Astro & Pure theme powered” 链接
      */
-    credits: true,
+    credits: false,
     /** Optional details about the social media accounts for this site.
      * 可选的社交媒体账户信息
      */
@@ -246,28 +239,6 @@ export const umamiConfig = {
   ),
   statsStartAt: process.env.UMAMI_STATS_START_AT || '1970-01-01',
   statsJsonPath: '/stats/pageviews.json'
-}
-
-export const terms: CardListData = {
-  title: 'Terms content',
-  list: [
-    {
-      title: 'Privacy Policy',
-      link: '/terms/privacy-policy'
-    },
-    {
-      title: 'Terms and Conditions',
-      link: '/terms/terms-and-conditions'
-    },
-    {
-      title: 'Copyright',
-      link: '/terms/copyright'
-    },
-    {
-      title: 'Disclaimer',
-      link: '/terms/disclaimer'
-    }
-  ]
 }
 
 const config = { ...theme, integ } as Config

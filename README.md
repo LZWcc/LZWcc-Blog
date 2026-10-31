@@ -81,10 +81,6 @@ GitHub Actions 使用以下仓库配置：
 
 部署使用 rsync 的 `--delete`，会删除目标目录中构建产物不存在的文件；`/var/www/blog/` 应专门用于博客静态文件。
 
-## 尚未完善的页面
-
-`src/pages/terms/` 中的隐私政策、使用条款、版权和免责声明页面仍保留主题占位文本，尚未编写实际内容。
-
 ## 主题与许可
 
 主题使用说明见 [Astro Pure 文档](https://astro-pure.js.org/docs)。
