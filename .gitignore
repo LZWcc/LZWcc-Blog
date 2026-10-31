@@ -43,3 +43,6 @@ bunfig.toml
 # Python maintenance scripts
 __pycache__/
 *.pyc
+
+# Bundled Node.js maintenance tools
+/dist-tools/

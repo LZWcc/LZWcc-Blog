@@ -1,0 +1,150 @@
+---
+import { commentPath } from '@/utils/commentPath'
+import { artalkConfig } from '@/site-config'
+
+const { class: className } = Astro.props
+const { server, site, avatars } = artalkConfig
+---
+
+{
+  artalkConfig.enable && (
+    <section id='comments' class:list={['mt-8', className]} aria-label='评论'>
+      <link rel='stylesheet' href={`${server}/dist/Artalk.css`} />
+      <artalk-comments
+        data-server={server}
+        data-site={site}
+        data-page={commentPath(Astro.url.pathname)}
+        data-avatars={JSON.stringify(avatars)}
+      >
+        <p data-status role='status' class='mb-3 text-sm text-muted-foreground'>
+          正在加载评论…
+        </p>
+        <button data-retry hidden type='button' class='mb-3 rounded border px-3 py-1 text-sm'>
+          重试加载评论
+        </button>
+        <div data-comments class='not-prose' />
+      </artalk-comments>
+    </section>
+  )
+}
+
+<script>
+  type Instance = {
+    destroy: () => void
+    setDarkMode: (value: boolean) => void
+    on: (event: string, handler: () => void) => void
+  }
+  type ArtalkApi = { init: (config: Record<string, unknown>) => Instance }
+  const globals = window as typeof window & { Artalk?: ArtalkApi }
+  let loading: Promise<ArtalkApi> | undefined
+
+  function loadArtalk(server: string): Promise<ArtalkApi> {
+    if (globals.Artalk) return Promise.resolve(globals.Artalk)
+    if (!loading) {
+      loading = new Promise<ArtalkApi>((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = `${server}/dist/Artalk.js`
+        script.async = true
+        const timer = setTimeout(() => fail(), 15000)
+        const fail = () => {
+          clearTimeout(timer)
+          script.remove()
+          loading = undefined
+          reject(new Error('评论脚本加载失败'))
+        }
+        script.onerror = fail
+        script.onload = () => {
+          clearTimeout(timer)
+          if (globals.Artalk) resolve(globals.Artalk)
+          else fail()
+        }
+        document.head.append(script)
+      })
+    }
+    return loading
+  }
+
+  class ArtalkComments extends HTMLElement {
+    private instance?: Instance
+    private observer?: MutationObserver
+    private generation = 0
+
+    connectedCallback() {
+      this.querySelector<HTMLButtonElement>('[data-retry]')!.onclick = () => this.mount()
+      void this.mount()
+    }
+
+    disconnectedCallback() {
+      this.generation++
+      this.observer?.disconnect()
+      this.instance?.destroy()
+      this.instance = undefined
+    }
+
+    async mount() {
+      const generation = ++this.generation
+      const status = this.querySelector<HTMLElement>('[data-status]')!
+      const retry = this.querySelector<HTMLButtonElement>('[data-retry]')!
+      status.hidden = false
+      status.textContent = '正在加载评论…'
+      retry.hidden = true
+      try {
+        const server = this.dataset.server!
+        const Artalk = await loadArtalk(server)
+        if (!this.isConnected || generation !== this.generation) return
+        this.instance?.destroy()
+        const dark = () => document.documentElement.classList.contains('dark')
+        const avatars: Record<string, string> = JSON.parse(this.dataset.avatars || '{}')
+        this.instance = Artalk.init({
+          el: this.querySelector('[data-comments]'),
+          server,
+          site: this.dataset.site,
+          pageKey: this.dataset.page,
+          pageTitle: document.title,
+          locale: 'zh-CN',
+          darkMode: dark(),
+          pvAdd: false,
+          uaBadge: false,
+          imgUpload: false,
+          placeholder: '欢迎留下你的想法。邮件通知尚未启用。',
+          avatarURLBuilder: (comment: { user_id: number; email_encrypted: string }) =>
+            avatars[comment.user_id] ||
+            `https://www.gravatar.com/avatar/${comment.email_encrypted}?sha256=1&d=mp&s=160`
+        })
+        this.instance.on('list-loaded', () => {
+          status.hidden = true
+        })
+        this.instance.on('list-failed', () => {
+          status.hidden = false
+          status.textContent = '评论暂时无法加载，请重试。'
+          retry.hidden = false
+        })
+        for (const event of ['comment-inserted', 'comment-deleted']) {
+          this.instance.on(event, () => window.dispatchEvent(new Event('blog:comment-posted')))
+        }
+        this.observer?.disconnect()
+        this.observer = new MutationObserver(() => this.instance?.setDarkMode(dark()))
+        this.observer.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ['class']
+        })
+      } catch {
+        if (!this.isConnected || generation !== this.generation) return
+        status.textContent = '评论暂时无法加载，请重试。'
+        retry.hidden = false
+      }
+    }
+  }
+  if (!customElements.get('artalk-comments'))
+    customElements.define('artalk-comments', ArtalkComments)
+</script>
+
+<style>
+  artalk-comments {
+    display: block;
+  }
+  [data-comments] {
+    --at-color-main: hsl(var(--foreground));
+    --at-color-border: hsl(var(--border));
+  }
+</style>

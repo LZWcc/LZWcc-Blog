@@ -1,0 +1,14 @@
+[Unit]
+Description=Back up the Artalk comment database
+After=blog-artalk.service
+
+[Service]
+Type=oneshot
+User=blog-comments
+Group=blog-comments
+ExecStart=/usr/local/bin/node --disable-warning=ExperimentalWarning /opt/blog-comments/backup-comments.mjs
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/blog-comments/daily-backups

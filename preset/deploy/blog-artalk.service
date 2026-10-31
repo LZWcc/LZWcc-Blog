@@ -1,0 +1,19 @@
+[Unit]
+Description=LZWcc blog Artalk comments
+After=network.target
+
+[Service]
+User=blog-comments
+Group=blog-comments
+WorkingDirectory=/opt/blog-comments
+ExecStart=/opt/blog-comments/artalk -w /opt/blog-comments -c /opt/blog-comments/data/artalk.yml server
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/blog-comments/data
+
+[Install]
+WantedBy=multi-user.target

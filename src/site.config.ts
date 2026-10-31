@@ -217,10 +217,22 @@ export const integ: IntegrationUserConfig = {
 
 // Remark42 comment system config // Remark42 评论系统配置
 export const remark42Config = {
-  enable: true,
+  enable: false,
   host: 'https://remark42.lzwcc.xyz',
   siteId: 'lzwcc',
   locale: 'zh'
+}
+
+// Artalk assets and API are served by the blog's Nginx reverse proxy.
+export const artalkConfig = {
+  enable: true,
+  server: 'https://lzwcc.xyz/comments',
+  site: 'LZWcc',
+  // Avatars of users migrated from Remark42, keyed by Artalk user ID; others use Gravatar.
+  avatars: {
+    1: '/images/comment-avatars/1.jpg',
+    6: '/images/comment-avatars/6.png'
+  } as Record<number, string>
 }
 
 // Umami analytics config // Umami 访问量统计配置

@@ -1,0 +1,129 @@
+---
+import { artalkConfig, umamiConfig } from '@/site-config'
+import { commentPath } from '@/utils/commentPath'
+
+interface Props {
+  view?: boolean
+  comment?: boolean
+  class?: string
+}
+
+const { view, comment, class: className } = Astro.props
+const server = artalkConfig.server
+const site = artalkConfig.site
+const page = commentPath(Astro.url.pathname)
+const statsJsonPath = umamiConfig.statsJsonPath
+const showViews = umamiConfig.enable && !!umamiConfig.websiteId && view
+const showComments = artalkConfig.enable && comment
+---
+
+{(showViews || showComments) && (
+  <div class:list={['flex gap-2 text-sm text-muted-foreground', className]}>
+    {showViews && (
+      <span class="inline-flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <span><span class="umami-pageview-count" data-path={Astro.url.pathname}>...</span> views</span>
+      </span>
+    )}
+    {showComments && (
+      <span class="inline-flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span><artalk-counter data-server={server} data-site={site} data-page={page}>...</artalk-counter> comments</span>
+      </span>
+    )}
+  </div>
+)}
+
+{showViews && (
+  <script is:inline define:vars={{ statsJsonPath }}>
+    var PAGEVIEWS_CACHE_KEY = '__umamiPageviewsPromise'
+
+    function normalizeUmamiPath(path) {
+      const pathname = path.split(/[?#]/)[0]
+      const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
+      return normalized === '/' ? normalized : normalized.replace(/\/+$/, '')
+    }
+
+    function getUmamiPageviews() {
+      window[PAGEVIEWS_CACHE_KEY] = window[PAGEVIEWS_CACHE_KEY] || fetch(statsJsonPath, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000)
+      })
+        .then((response) => response.ok ? response.json() : null)
+        .catch(() => null)
+
+      return window[PAGEVIEWS_CACHE_KEY]
+    }
+
+    async function renderUmamiPageviews() {
+      const pageviews = await getUmamiPageviews()
+
+      document.querySelectorAll('.umami-pageview-count').forEach((element) => {
+        const path = element.dataset.path || window.location.pathname
+        const normalized = normalizeUmamiPath(path)
+        const views = pageviews?.[path] ?? pageviews?.[normalized] ?? pageviews?.[`${normalized}/`]
+        const available = typeof views === 'number' && Number.isFinite(views) && views >= 0
+        element.textContent = available ? String(views) : '—'
+        element.title = available ? 'Umami 阅读量（定期更新）' : '阅读量暂不可用'
+      })
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderUmamiPageviews)
+    } else {
+      renderUmamiPageviews()
+    }
+
+    document.addEventListener('astro:after-swap', renderUmamiPageviews)
+  </script>
+)}
+
+{showComments && (
+  <script>
+    class ArtalkCounter extends HTMLElement {
+      private controller?: AbortController
+      private refresh = () => { void this.load() }
+
+      connectedCallback() {
+        window.addEventListener('blog:comment-posted', this.refresh)
+        void this.load()
+      }
+
+      disconnectedCallback() {
+        this.controller?.abort()
+        window.removeEventListener('blog:comment-posted', this.refresh)
+      }
+
+      async load() {
+        this.controller?.abort()
+        const controller = this.controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), 10000)
+        try {
+          const query = new URLSearchParams({ site_name: this.dataset.site!, page_keys: this.dataset.page! })
+          const response = await fetch(`${this.dataset.server}/api/v2/stats/page_comment?${query}`, {
+            signal: controller.signal, cache: 'no-store'
+          })
+          if (!response.ok) throw new Error('Comment count unavailable')
+          const json = await response.json()
+          const count = json.data?.[this.dataset.page!]
+          if (typeof count !== 'number' || !Number.isFinite(count)) throw new Error('Invalid count')
+          if (this.isConnected && this.controller === controller) {
+            this.textContent = String(count)
+            this.title = '评论数'
+          }
+        } catch {
+          if (this.isConnected && this.controller === controller) {
+            this.textContent = '—'
+            this.title = '评论数暂不可用'
+          }
+        } finally { clearTimeout(timer) }
+      }
+    }
+    if (!customElements.get('artalk-counter')) customElements.define('artalk-counter', ArtalkCounter)
+  </script>
+)}
