@@ -81,6 +81,12 @@ GitHub Actions 使用以下仓库配置：
 
 部署使用 rsync 的 `--delete`，会删除目标目录中构建产物不存在的文件；`/var/www/blog/` 应专门用于博客静态文件。
 
+## 文章赞赏
+
+文章底部的咖啡入口指向 `/projects#sponsorship`。赞赏区采用微信和支付宝双卡片：桌面悬停或键盘聚焦显示清晰收款码，手机直接显示，点击可查看原图。
+
+将自己的收款码放入 `src/assets/sponsorship/`，分别命名为 `wechat.png` 和 `alipay.png`（也支持 `.jpg`、`.jpeg`、`.webp`，每种方式保留一张）。重新构建后会自动启用对应卡片；未提供图片时显示「收款码待添加」，无法进行赞赏。
+
 ## 主题与许可
 
 主题使用说明见 [Astro Pure 文档](https://astro-pure.js.org/docs)。

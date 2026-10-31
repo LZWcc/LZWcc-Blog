@@ -3,10 +3,12 @@ import { Image } from 'astro:assets'
 
 import PageLayout from '@/layouts/CommonPage.astro'
 import ProjectSection from '@/components/projects/ProjectSection.astro'
+import Sponsorship from '@/components/projects/Sponsorship.astro'
 
 const headings = [
   { depth: 2, slug: 'programs', text: 'Programs' },
-  { depth: 2, slug: 'learnings', text: 'Learnings' }
+  { depth: 2, slug: 'learnings', text: 'Learnings' },
+  { depth: 2, slug: 'sponsorship', text: '赞赏' }
 ]
 ---
 
@@ -95,4 +97,8 @@ const headings = [
       }
     ]}
   />
+
+  <h2 id='sponsorship'>赞赏</h2>
+  <p>如果这里的文章或项目对你有帮助，欢迎请我喝杯咖啡。谢谢你的支持。</p>
+  <Sponsorship />
 </PageLayout>

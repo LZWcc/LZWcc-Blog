@@ -1,0 +1,163 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
+
+import { Icon } from 'astro-pure/user'
+
+// 放入自己的收款码后自动启用；不使用示例或第三方收款码。
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/sponsorship/*.{png,jpg,jpeg,webp}',
+  { eager: true }
+)
+const methods = [
+  { id: 'wechat', name: '微信赞赏', icon: 'wechat-pay' as const },
+  { id: 'alipay', name: '支付宝', icon: 'alipay' as const }
+].map((method) => ({
+  ...method,
+  image: Object.entries(images).find(([path]) =>
+    path.replace(/\.[^.]+$/, '').endsWith(`/${method.id}`)
+  )?.[1].default
+}))
+---
+
+<div class='sponsorship not-prose' aria-label='赞赏方式'>
+  {
+    methods.map(({ id, name, icon, image }) => (
+      <div class='method'>
+        {image ? (
+          <a class='card' href={image.src} aria-label={`查看${name}收款码原图`}>
+            <Image
+              class='payment-code'
+              src={image}
+              alt={`LZWcc 的${name}收款码`}
+              width={480}
+              loading='lazy'
+            />
+            <span class={`cover ${id}`} aria-hidden='true'>
+              <Icon class='size-20' name={icon} />
+            </span>
+          </a>
+        ) : (
+          <div class={`card pending ${id}`}>
+            <Icon class='size-20' name={icon} />
+            <span>收款码待添加</span>
+          </div>
+        )}
+        <span class='method-name'>{name}</span>
+      </div>
+    ))
+  }
+</div>
+{methods.some(({ image }) => image) && <p class='hint'>点击收款码查看原图，手机端可长按保存。</p>}
+
+<style>
+  .sponsorship {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-block: 1.5rem;
+  }
+
+  .method {
+    width: min(15rem, 100%);
+    text-align: center;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    min-height: 15rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    background: white;
+  }
+
+  .payment-code {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    transition:
+      opacity 200ms,
+      filter 200ms;
+  }
+
+  .cover {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity 200ms;
+  }
+
+  .wechat {
+    color: #168a44;
+  }
+
+  .alipay {
+    color: #1677ff;
+  }
+
+  .pending {
+    flex-direction: column;
+    gap: 1rem;
+    background: hsl(var(--muted));
+  }
+
+  .pending > span,
+  .method-name,
+  .hint {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+  }
+
+  .method-name {
+    display: block;
+    margin-top: 0.75rem;
+  }
+
+  .hint {
+    text-align: center;
+  }
+
+  .card:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 4px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .payment-code {
+      opacity: 0.3;
+      filter: blur(4px);
+    }
+
+    .cover {
+      display: flex;
+    }
+
+    .card:hover .payment-code,
+    .card:focus-visible .payment-code {
+      opacity: 1;
+      filter: none;
+    }
+
+    .card:hover .cover,
+    .card:focus-visible .cover {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .payment-code,
+    .cover {
+      transition: none;
+    }
+  }
+</style>
