@@ -91,6 +91,24 @@ const { server, site, avatars } = artalkConfig
       this.instance = undefined
     }
 
+    /**
+     * Artalk only creates a page record when the page is commented on or its view is logged.
+     * Without one the page id is 0 and the like button does nothing, so log the view before
+     * init (pvAdd stays off to avoid counting twice). Failures only cost the like button.
+     */
+    private async registerPage(server: string) {
+      await fetch(`${server}/api/v2/pages/pv`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          page_key: this.dataset.page,
+          page_title: document.title,
+          site_name: this.dataset.site
+        }),
+        signal: AbortSignal.timeout(5000)
+      }).catch(() => undefined)
+    }
+
     async mount() {
       const generation = ++this.generation
       const status = this.querySelector<HTMLElement>('[data-status]')!
@@ -100,7 +118,7 @@ const { server, site, avatars } = artalkConfig
       retry.hidden = true
       try {
         const server = this.dataset.server!
-        const Artalk = await loadArtalk(server)
+        const [Artalk] = await Promise.all([loadArtalk(server), this.registerPage(server)])
         if (!this.isConnected || generation !== this.generation) return
         this.instance?.destroy()
         const dark = () => document.documentElement.classList.contains('dark')
