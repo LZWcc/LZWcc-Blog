@@ -16,6 +16,16 @@ const { server, site, avatars } = artalkConfig
         data-page={commentPath(Astro.url.pathname)}
         data-avatars={JSON.stringify(avatars)}
       >
+        <div class='page-vote' data-page-vote hidden>
+          <button type='button' class='artalk-page-vote-up' aria-label='喜欢这篇文章'>
+            <svg viewBox='0 0 24 24' aria-hidden='true'>
+              <path d='M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z' />
+            </svg>
+          </button>
+          <span>
+            <span class='artalk-page-vote-up-count'>0</span> likes
+          </span>
+        </div>
         <p data-status role='status' class='mb-3 text-sm text-muted-foreground'>
           正在加载评论…
         </p>
@@ -107,12 +117,15 @@ const { server, site, avatars } = artalkConfig
           uaBadge: false,
           imgUpload: false,
           placeholder: '欢迎留下你的想法。邮件通知尚未启用。',
+          // Artalk's page vote plugin binds .artalk-page-vote-up and fills in the count.
+          pageVote: true,
           avatarURLBuilder: (comment: { user_id: number; email_encrypted: string }) =>
             avatars[comment.user_id] ||
             `https://www.gravatar.com/avatar/${comment.email_encrypted}?sha256=1&d=mp&s=160`
         })
         this.instance.on('list-loaded', () => {
           status.hidden = true
+          this.querySelector<HTMLElement>('[data-page-vote]')!.hidden = false
         })
         this.instance.on('list-failed', () => {
           status.hidden = false
@@ -143,8 +156,93 @@ const { server, site, avatars } = artalkConfig
   artalk-comments {
     display: block;
   }
-  [data-comments] {
-    --at-color-main: hsl(var(--foreground));
+  .page-vote {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+  }
+  .page-vote button {
+    display: inline-flex;
+    padding: 0.25rem;
+    color: hsl(var(--muted-foreground));
+    transition: color 0.2s;
+  }
+  .page-vote button:hover,
+  .page-vote button:focus-visible {
+    color: hsl(var(--foreground));
+  }
+  .page-vote svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  .page-vote button.active {
+    color: hsl(var(--primary));
+  }
+  .page-vote button.active svg {
+    fill: currentColor;
+  }
+</style>
+
+<style is:global>
+  /* Artalk's palette mapped onto the blog theme; html.dark flips the theme variables,
+     so the same mapping serves both modes. #comments outranks Artalk's own selectors. */
+  #comments .artalk,
+  #comments .artalk.atk-dark-mode {
+    --at-color-font: hsl(var(--foreground));
+    --at-color-deep: hsl(var(--foreground));
+    --at-color-sub: hsl(var(--muted-foreground));
+    --at-color-grey: hsl(var(--muted-foreground));
+    --at-color-meta: hsl(var(--muted-foreground));
     --at-color-border: hsl(var(--border));
+    --at-color-light: hsl(var(--primary));
+    --at-color-bg: hsl(var(--background));
+    --at-color-bg-transl: hsl(var(--background) / 0.94);
+    --at-color-bg-grey: hsl(var(--muted));
+    --at-color-bg-grey-transl: hsl(var(--muted) / 0.9);
+    --at-color-bg-light: hsl(var(--primary) / 0.1);
+    --at-color-main: hsl(var(--primary));
+    --at-color-gradient: linear-gradient(180deg, transparent, hsl(var(--background)));
+  }
+  /* Same shape as the copyright card above it. */
+  #comments .atk-main-editor {
+    border-radius: 0.75rem;
+  }
+  #comments .atk-send-btn {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+    border-radius: var(--radius);
+    font-weight: 500;
+  }
+  #comments .atk-send-btn:hover {
+    opacity: 0.85;
+  }
+  #comments .atk-nick,
+  #comments .atk-nick a {
+    color: hsl(var(--foreground));
+    font-weight: 500;
+  }
+  /* Badge colors come inline from Artalk's admin config. */
+  #comments .atk-badge {
+    background: hsl(var(--primary) / 0.12) !important;
+    color: hsl(var(--primary)) !important;
+  }
+  #comments .atk-region-badge {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+  #comments .atk-avatar,
+  #comments .atk-avatar img {
+    border-radius: var(--radius);
+  }
+  #comments .atk-copyright a {
+    color: inherit;
   }
 </style>
