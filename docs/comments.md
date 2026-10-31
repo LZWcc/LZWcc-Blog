@@ -8,6 +8,7 @@
 - 服务：`preset/deploy/blog-artalk.service`，监听 `127.0.0.1:23366`，数据在 `/opt/blog-comments/data/`。
 - 反向代理：`preset/deploy/blog-comments.nginx.conf`，`/comments/` 直接转给 Artalk。Artalk 从 `X-Real-IP` 读取访客 IP（`artalk.yml` 的 `http.proxy_header`），登录验证码和频率限制都按这个 IP 计算。
 - 属地：Artalk 自带的 IP 属地（`artalk.yml` 的 `ip_region`，省级精度，数据库 `data/ip2region.xdb`）。
+  数据库必须是旧格式。ip2region 在 2025-09 去掉了「区域」一列，Artalk 2.10 仍按旧格式取第 3 列作省份，换成新的 `ip2region_v4.xdb` 会把城市当成省份显示。线上用的是 ip2region 提交 `27b5efde55`（2024-02）里的 `data/ip2region.xdb`。
 - 头像：从 Remark42 迁来的 2 个用户头像在 `public/images/comment-avatars/`，按 Artalk 用户 ID 写在 `artalkConfig.avatars`；其他用户使用 Gravatar。
 
 公开接口不返回 IP 和邮箱。浏览器标识（UA）会随评论数据返回，前端不显示。
