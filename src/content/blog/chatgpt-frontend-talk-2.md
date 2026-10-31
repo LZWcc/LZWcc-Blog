@@ -7,7 +7,6 @@ tags:
   - 设计
   - ChatGPT
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [GPT-6.1 Sol, Claude Opus 5.5]

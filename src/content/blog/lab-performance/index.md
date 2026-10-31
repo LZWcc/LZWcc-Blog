@@ -7,7 +7,6 @@ tags:
   - 性能
   - Nuxt
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]

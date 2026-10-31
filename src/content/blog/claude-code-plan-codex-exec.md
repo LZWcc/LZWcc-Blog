@@ -7,7 +7,6 @@ tags:
   - Claude Code
   - Codex
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]

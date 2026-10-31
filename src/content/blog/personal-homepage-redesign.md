@@ -9,7 +9,6 @@ tags:
   - Vue
   - 设计
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]

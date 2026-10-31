@@ -7,7 +7,6 @@ tags:
   - 前端
   - 性能
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]

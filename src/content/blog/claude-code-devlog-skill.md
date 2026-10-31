@@ -7,7 +7,6 @@ tags:
   - Skill
   - 博客
 draft: false
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]

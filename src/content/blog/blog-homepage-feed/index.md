@@ -7,7 +7,6 @@ tags:
   - Astro
   - 设计
 draft: false
-comment: false
 category: project
 authorship:
   mode: generated

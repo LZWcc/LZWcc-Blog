@@ -6,7 +6,6 @@ tags:
   - Oracle Cloud
   - SSH
   - 代理
-comment: false
 authorship:
   mode: generated
   models: [Claude Opus 5.5]
